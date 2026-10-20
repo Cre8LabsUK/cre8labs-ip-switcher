@@ -18,6 +18,12 @@ if (-not $Version) {
 }
 Write-Host "Building Cre8Labs IP Switcher $Version" -ForegroundColor Cyan
 
+# A running copy of a previous build locks its exe, so check before deleting anything.
+$locked = Get-ChildItem $dist, $out -Filter *.exe -ErrorAction SilentlyContinue | Where-Object {
+    try { [IO.File]::Open($_.FullName, 'Open', 'ReadWrite', 'None').Dispose(); $false } catch { $true }
+}
+if ($locked) { throw "Close Cre8Labs IP Switcher first. This file is in use: $($locked[0].FullName)" }
+
 # 1. App (clean build, so the admin manifest is never stale)
 Remove-Item -Recurse -Force (Join-Path $src 'obj'), (Join-Path $src 'bin'), $out, $dist -ErrorAction SilentlyContinue
 dotnet build $src -c Release -o $out --no-incremental "-p:Version=$Version"
