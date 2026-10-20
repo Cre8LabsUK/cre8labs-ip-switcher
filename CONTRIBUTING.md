@@ -25,6 +25,12 @@ Please remove anything you would rather keep private, such as MAC addresses or p
    ```
 
    It shows live status but cannot change settings. Use **Restart as admin** in the banner to test real changes.
+
+   Add `--demo` to run it with sample adapters and presets. Nothing is changed or saved, which makes it safe for trying UI changes and for taking screenshots:
+
+   ```powershell
+   preview-build\Cre8Labs-IPSwitcher.exe --demo
+   ```
 3. Build everything (app, installer, checksums) with `build.ps1`.
 
 ## Pull requests
@@ -38,4 +44,4 @@ Please remove anything you would rather keep private, such as MAC addresses or p
 
 ## Code of conduct
 
-Be kind and constructive. Harassment or personal attacks are not tolerated.
+Everyone taking part is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).

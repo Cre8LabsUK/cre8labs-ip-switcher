@@ -46,6 +46,11 @@ namespace Cre8Labs.IPSwitcher.Core
         /// <summary>Blocking; call from a background thread.</summary>
         public static PingReplyInfo Send(IPAddress source, IPAddress destination, int timeoutMs)
         {
+            if (NetworkService.DemoMode)
+            {
+                System.Threading.Thread.Sleep(40);
+                return new PingReplyInfo { Ok = true, RoundTripMs = 1 + Environment.TickCount % 3, From = destination.ToString() };
+            }
             var handle = IcmpCreateFile();
             if (handle == new IntPtr(-1)) return new PingReplyInfo { Error = new Win32Exception().Message };
             var buffer = Marshal.AllocHGlobal(ReplyBufferSize);

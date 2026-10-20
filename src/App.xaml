@@ -236,10 +236,14 @@
                 <Border x:Name="ring" Margin="-3" CornerRadius="12" BorderBrush="#4014AFCB" BorderThickness="3" Opacity="0" />
                 <Border x:Name="bd" CornerRadius="9" Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                  <Grid Margin="{TemplateBinding Padding}">
-                    <TextBlock x:Name="ph" Text="{TemplateBinding Tag}" Foreground="{StaticResource Faint}"
-                               VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed" IsHitTestVisible="False"
-                               FontFamily="{StaticResource UiFont}" />
+                  <!-- TextBox applies Padding inside PART_ContentHost itself, so only the placeholder needs it here
+                       (plus the 2px the text view adds) to line up with typed text. -->
+                  <Grid>
+                    <Border Padding="{TemplateBinding Padding}" IsHitTestVisible="False">
+                      <TextBlock x:Name="ph" Text="{TemplateBinding Tag}" Foreground="{StaticResource Faint}"
+                                 VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"
+                                 FontFamily="{StaticResource UiFont}" />
+                    </Border>
                     <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Focusable="False"
                                   HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
                   </Grid>

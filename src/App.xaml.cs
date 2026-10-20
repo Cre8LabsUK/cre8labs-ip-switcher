@@ -13,6 +13,7 @@ namespace Cre8Labs.IPSwitcher
         {
             DispatcherUnhandledException += OnDispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += (s, args) => WriteCrash(args.ExceptionObject as Exception);
+            Core.NetworkService.DemoMode = Array.IndexOf(e.Args, "--demo") >= 0;
             base.OnStartup(e);
         }
 

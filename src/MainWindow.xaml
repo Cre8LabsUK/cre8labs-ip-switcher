@@ -144,11 +144,11 @@
           <TextBlock Text="IP Switcher" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-          <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" Height="56" Click="Min_Click"
+          <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" Height="56" Click="Min_Click" AutomationProperties.Name="Minimize"
                   WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize" />
-          <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Height="56" Click="Max_Click"
+          <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Height="56" Click="Max_Click" AutomationProperties.Name="Maximize"
                   WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Maximize" />
-          <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" Height="56" Click="Close_Click"
+          <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" Height="56" Click="Close_Click" AutomationProperties.Name="Close"
                   WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close" />
         </StackPanel>
       </Grid>
@@ -183,7 +183,7 @@
           <Border Style="{StaticResource Card}">
             <StackPanel>
               <DockPanel>
-                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Refresh_Click" ToolTip="Refresh (F5)" Margin="0,-10,-10,0" />
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Refresh_Click" AutomationProperties.Name="Refresh adapters" ToolTip="Refresh (F5)" Margin="0,-10,-10,0" />
                 <TextBlock Style="{StaticResource Overline}" Text="NETWORK ADAPTER" VerticalAlignment="Center" />
               </DockPanel>
               <ComboBox x:Name="AdapterCombo" Style="{StaticResource Combo}" Height="52" Margin="0,8,0,0"
@@ -210,7 +210,7 @@
 
               <TextBlock Style="{StaticResource Overline}" Text="CURRENT ADDRESS" />
               <DockPanel Margin="0,6,0,0">
-                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE8C8;" Click="CopyIp_Click" ToolTip="Copy IP" VerticalAlignment="Center" Margin="0,0,-10,0" />
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE8C8;" Click="CopyIp_Click" AutomationProperties.Name="Copy IP address" ToolTip="Copy IP" VerticalAlignment="Center" Margin="0,0,-10,0" />
                 <TextBlock VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis">
                   <Run Text="{Binding Status.Ip, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="25" FontWeight="SemiBold" />
                   <Run Text="{Binding Status.Prefix, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="16" Foreground="{StaticResource Faint}" />
@@ -290,7 +290,7 @@
                 <TextBlock Text="{Binding Status.Note}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource Muted}" />
               </Border>
 
-              <Button Style="{StaticResource SecondaryButton}" Margin="0,16,0,0" HorizontalAlignment="Stretch" Click="OpenNcpa_Click">
+              <Button Style="{StaticResource SecondaryButton}" Margin="0,16,0,0" HorizontalAlignment="Stretch" Click="OpenNcpa_Click" AutomationProperties.Name="Windows network connections">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE839;" VerticalAlignment="Center" Margin="0,0,8,0" />
                   <TextBlock Text="Windows network connections" VerticalAlignment="Center" />
@@ -337,9 +337,9 @@
 
           <DockPanel Margin="0,0,0,14">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-              <CheckBox x:Name="AddExtraSwitch" Style="{StaticResource Switch}" Content="Add as extra IP" VerticalAlignment="Center"
+              <CheckBox x:Name="AddExtraSwitch" AutomationProperties.Name="Add as extra IP" Style="{StaticResource Switch}" Content="Add as extra IP" VerticalAlignment="Center"
                         ToolTip="Add the preset IP alongside the current static IP instead of replacing it" />
-              <Button Style="{StaticResource PrimaryButton}" Margin="18,0,0,0" Click="NewPreset_Click" ToolTip="New preset (Ctrl+N)">
+              <Button Style="{StaticResource PrimaryButton}" Margin="18,0,0,0" Click="NewPreset_Click" ToolTip="New preset (Ctrl+N)" AutomationProperties.Name="New preset">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE710;" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0" />
                   <TextBlock Text="New preset" VerticalAlignment="Center" />
@@ -354,7 +354,7 @@
           </DockPanel>
 
           <!-- DHCP tile -->
-          <Button x:Name="DhcpTile" Grid.Row="1" Style="{StaticResource TileButton}" Height="78" Margin="0,0,14,14" Click="Dhcp_Click"
+          <Button x:Name="DhcpTile" Grid.Row="1" Style="{StaticResource TileButton}" Height="78" Margin="0,0,14,14" Click="Dhcp_Click" AutomationProperties.Name="Switch to DHCP"
                   DataContext="{Binding DhcpItem}" ToolTip="Shortcut: press 0">
             <DockPanel>
               <Border DockPanel.Dock="Left" Width="44" Height="44" CornerRadius="12" Background="{StaticResource BrandGradient}" VerticalAlignment="Center">
@@ -392,7 +392,8 @@
                   <DataTemplate>
                     <Button Style="{StaticResource TileButton}" Height="122" Margin="0,0,14,14"
                             Width="{Binding DataContext.TileWidth, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                            Click="PresetTile_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="{Binding Tooltip}">
+                            Click="PresetTile_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="{Binding Tooltip}"
+                            AutomationProperties.Name="{Binding Name, StringFormat=Apply {0}}">
                       <Grid>
                         <Grid.RowDefinitions>
                           <RowDefinition Height="Auto" />
@@ -407,7 +408,8 @@
                                        Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                           </Border>
                           <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,-6,-8,0"
-                                  Content="&#xE712;" Click="More_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="More" />
+                                  Content="&#xE712;" Click="More_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="More"
+                                  AutomationProperties.Name="{Binding Name, StringFormat=More options for {0}}" />
                           <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Margin="10,0,4,0"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
@@ -415,7 +417,7 @@
                           <Run Text="{Binding Ip, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="19" FontWeight="SemiBold" />
                           <Run Text="{Binding PrefixText, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="13.5" Foreground="{StaticResource Faint}" />
                         </TextBlock>
-                        <DockPanel Grid.Row="2">
+                        <DockPanel Grid.Row="2" Height="22">
                           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Control Template="{StaticResource SpinnerTemplate}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
                             <Border Style="{StaticResource Chip}" Background="{StaticResource SuccessSoft}"

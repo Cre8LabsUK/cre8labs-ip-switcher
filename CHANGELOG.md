@@ -2,6 +2,18 @@
 
 All notable changes to this project are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `--demo` mode with sample adapters and presets, for screenshots and UI work. It never changes the network or saves presets.
+- Screen reader names for icon-only buttons and preset tiles
+
+### Fixed
+
+- Typed text in input fields now lines up with the placeholder text
+- The IP on the active preset tile no longer shifts up when the Active badge appears
+
 ## [1.0.0] - 2026-10-20
 
 ### Added

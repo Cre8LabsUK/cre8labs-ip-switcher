@@ -48,8 +48,12 @@ namespace Cre8Labs.IPSwitcher.Core
 
     public static class NetworkService
     {
+        /// <summary>Set by "--demo": fake adapters for screenshots, nothing touches the real network.</summary>
+        public static bool DemoMode { get; set; }
+
         public static bool IsAdmin()
         {
+            if (DemoMode) return true;
             using (var id = WindowsIdentity.GetCurrent())
                 return new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator);
         }
@@ -72,7 +76,7 @@ namespace Cre8Labs.IPSwitcher.Core
         }
 
         public static List<AdapterInfo> ListAdapters() =>
-            Usable()
+            DemoMode ? DemoData.ListAdapters() : Usable()
                 .OrderBy(Rank)
                 .ThenBy(n => n.OperationalStatus == OperationalStatus.Up ? 0 : 1)
                 .ThenBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
@@ -81,6 +85,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public static AdapterStatus ReadStatus(string name)
         {
+            if (DemoMode) return DemoData.ReadStatus(name);
             var ni = Usable().FirstOrDefault(n => n.Name == name);
             if (ni == null) return null;
 
@@ -164,6 +169,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public static OpResult ApplyStatic(string alias, Preset preset)
         {
+            if (DemoMode) return DemoData.ApplyStatic(alias, preset, false);
             var mask = IpTools.NormalizeMask(preset.Mask);
             var gateway = IpTools.IsIPv4(preset.Gateway) ? "gateway=" + IpTools.Canonical(preset.Gateway) : "gateway=none";
             var name = NameArg(alias);
@@ -192,6 +198,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public static OpResult AddAddress(string alias, Preset preset)
         {
+            if (DemoMode) return DemoData.ApplyStatic(alias, preset, true);
             // Check the state up front rather than parsing netsh text, which is localised.
             if (ReadStatus(alias)?.IsDhcp == true)
                 return OpResult.Fail("Extra IPs need a static adapter. Apply a static preset first, then add extras.");
@@ -202,6 +209,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public static OpResult SetDhcp(string alias)
         {
+            if (DemoMode) return DemoData.SetDhcp(alias);
             var name = NameArg(alias);
             // netsh fails if DHCP is already on, so only switch the address when it is static.
             if (ReadStatus(alias)?.IsDhcp != true)

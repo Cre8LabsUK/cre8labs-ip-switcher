@@ -53,6 +53,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public AppConfig Load()
         {
+            if (NetworkService.DemoMode) { ReadOnly = false; return DemoData.Config(); }
             if (!File.Exists(FilePath)) return Defaults();
 
             string text = null;
@@ -95,6 +96,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
         public void Save(AppConfig config)
         {
+            if (NetworkService.DemoMode) return;
             if (ReadOnly) throw new IOException("presets.json could not be read at startup, so it was not overwritten. Restart the app to edit presets.");
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
             var temp = FilePath + ".tmp";

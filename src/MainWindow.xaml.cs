@@ -111,7 +111,9 @@ namespace Cre8Labs.IPSwitcher
             BrandText.Text = $"v{Assembly.GetEntryAssembly().GetName().Version.ToString(3)}   cre8labs.uk";
             RebuildPresets();
             if (!System.IO.File.Exists(_store.FilePath)) SaveConfig();
-            AddLog("info", "Presets file: " + _store.FilePath);
+            AddLog("info", NetworkService.DemoMode
+                ? "Demo mode: sample adapters and presets. Nothing is changed or saved."
+                : "Presets file: " + _store.FilePath);
             if (_store.ReadOnly)
                 Notify("error", "presets.json is locked by another program, so defaults are shown and nothing will be saved. Restart to try again.");
             await ReloadAdaptersAsync();
