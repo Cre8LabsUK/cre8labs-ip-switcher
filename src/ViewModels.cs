@@ -28,17 +28,28 @@ namespace Cre8Labs.IPSwitcher
     {
         bool _isActive;
         bool _isBusy;
+        string _hotkeyText = "";
 
         public bool IsActive { get => _isActive; set => Set(ref _isActive, value); }
+
+        /// <summary>Shortcut shown on the tile badge, for example "1" or "Ctrl+F3". Empty hides the badge.</summary>
+        public string HotkeyText
+        {
+            get => _hotkeyText;
+            set { if (Set(ref _hotkeyText, value ?? "")) Raise(nameof(HasHotkey)); }
+        }
+
+        public bool HasHotkey => HotkeyText.Length > 0;
         public bool IsBusy { get => _isBusy; set => Set(ref _isBusy, value); }
     }
 
     public sealed class PresetItem : TileState
     {
-        public PresetItem(Preset model, int index)
+        public PresetItem(Preset model, int index, bool shortcutsEnabled)
         {
             Model = model;
             Index = index;
+            HotkeyText = shortcutsEnabled ? Input.Shortcut.Parse(model.Hotkey).Display : "";
         }
 
         public Preset Model { get; }
@@ -51,8 +62,6 @@ namespace Cre8Labs.IPSwitcher
             IpTools.IsHostAddress(Model.IP) && Mask != null &&
             new[] { Model.Gateway, Model.DNS1, Model.DNS2 }.All(v => string.IsNullOrWhiteSpace(v) || IpTools.IsIPv4(v));
         public string PrefixText => Mask != null ? "/" + IpTools.PrefixLength(Mask) : " bad mask";
-        public string Hotkey => Index < 9 ? (Index + 1).ToString() : "";
-        public bool HasHotkey => Index < 9;
 
         public string Subtitle => IpTools.IsIPv4(Model.Gateway) ? "Gateway " + Model.Gateway : "No gateway";
 
@@ -61,7 +70,7 @@ namespace Cre8Labs.IPSwitcher
             get
             {
                 var dns = string.Join(", ", new[] { Model.DNS1, Model.DNS2 }.Where(d => !string.IsNullOrWhiteSpace(d)));
-                var key = HasHotkey ? $"\nShortcut: press {Hotkey}" : "";
+                var key = HasHotkey ? $"\nShortcut: {HotkeyText}" : "";
                 return $"Mask {Model.Mask}\nDNS {(dns.Length > 0 ? dns : "none")}{key}";
             }
         }

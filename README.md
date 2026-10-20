@@ -32,7 +32,7 @@
 |---|---|
 | **One-click presets** | IP, subnet mask, gateway and two DNS servers, applied in about a second |
 | **Back to DHCP** | One click, or press `0` |
-| **Keyboard first** | `1` to `9` apply a preset, `0` is DHCP, `Ctrl+N` new preset, `F5` refresh |
+| **Your shortcuts** | Any key or combo per preset (default `1` to `9`, `0` for DHCP), turn them off, or make them work system-wide from the keyboard button in the title bar |
 | **Live status** | Address, DHCP or static, link speed, gateway, DNS and MAC, updated as Windows reports changes |
 | **Set up before you plug in** | Apply a preset with the cable unplugged; the saved settings are shown until the link comes up |
 | **Add as extra IP** | Keep your current address and add a second one, to reach a device on another subnet |

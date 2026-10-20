@@ -1,19 +1,27 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using Cre8Labs.IPSwitcher.Core;
+using Cre8Labs.IPSwitcher.Input;
 
 namespace Cre8Labs.IPSwitcher
 {
     public partial class PresetEditorWindow : Window
     {
         readonly StatusView _current;
+        readonly Func<Shortcut, string> _usedBy;
+        readonly bool _globalShortcuts;
 
         public Preset Result { get; private set; }
 
-        public PresetEditorWindow(Preset preset, StatusView current, string title)
+        /// <param name="usedBy">Returns the name of another action already using a shortcut, or null.</param>
+        /// <param name="globalShortcuts">True when shortcuts also work in the background, which needs Ctrl, Alt or Win.</param>
+        public PresetEditorWindow(Preset preset, StatusView current, string title, Func<Shortcut, string> usedBy, bool globalShortcuts)
         {
             InitializeComponent();
             _current = current;
+            _usedBy = usedBy;
+            _globalShortcuts = globalShortcuts;
             Title = title;
             TitleText.Text = title;
 
@@ -24,6 +32,7 @@ namespace Cre8Labs.IPSwitcher
             GatewayBox.Text = p.Gateway;
             Dns1Box.Text = p.DNS1;
             Dns2Box.Text = p.DNS2;
+            HotkeyBox.Gesture = p.Hotkey ?? "";
 
             Loaded += (s, e) =>
             {
@@ -89,6 +98,7 @@ namespace Cre8Labs.IPSwitcher
             ok &= Check(GatewayBox, GatewayError, Optional(GatewayBox.Text));
             ok &= Check(Dns1Box, Dns1Error, Optional(Dns1Box.Text));
             ok &= Check(Dns2Box, Dns2Error, Optional(Dns2Box.Text));
+            ok &= Check(HotkeyBox, HotkeyError, ShortcutProblem(Shortcut.Parse(HotkeyBox.Gesture)));
             if (!ok) return;
 
             Result = new Preset
@@ -99,8 +109,19 @@ namespace Cre8Labs.IPSwitcher
                 Gateway = Clean(GatewayBox.Text),
                 DNS1 = Clean(Dns1Box.Text),
                 DNS2 = Clean(Dns2Box.Text),
+                Hotkey = HotkeyBox.Gesture ?? "",
             };
             DialogResult = true;
+        }
+
+        string ShortcutProblem(Shortcut shortcut)
+        {
+            if (shortcut.IsEmpty) return null;
+            if (shortcut.IsReserved) return "Reserved for moving around the app. Pick another key.";
+            var other = _usedBy?.Invoke(shortcut);
+            if (other != null) return $"Already used by {other}.";
+            if (_globalShortcuts && !shortcut.HasStrongModifier) return "Background shortcuts need Ctrl, Alt or Win.";
+            return null;
         }
 
         void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;

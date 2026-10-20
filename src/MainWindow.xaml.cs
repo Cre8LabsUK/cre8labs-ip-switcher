@@ -18,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Cre8Labs.IPSwitcher.Core;
+using Cre8Labs.IPSwitcher.Input;
 
 namespace Cre8Labs.IPSwitcher
 {
@@ -35,6 +36,16 @@ namespace Cre8Labs.IPSwitcher
         bool _refreshAgain;
         bool _suppressSelection;
         Action _toastAction;
+        GlobalHotkeys _globalHotkeys;
+
+        sealed class ShortcutAction
+        {
+            public string Label;
+            public Func<Task> Run;
+            public bool NeedsWindow; // opens a dialog, so bring the window forward first
+        }
+
+        readonly Dictionary<Shortcut, ShortcutAction> _bindings = new Dictionary<Shortcut, ShortcutAction>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -45,6 +56,10 @@ namespace Cre8Labs.IPSwitcher
         public TileState DhcpItem { get; } = new TileState();
         public bool NotAdmin { get; } = !NetworkService.IsAdmin();
         public bool NoPresets => Presets.Count == 0;
+
+        public string ShortcutHint => _config.Shortcuts.Enabled
+            ? "Click a tile to switch, or press the key shown on it."
+            : "Click a tile to switch. Keyboard shortcuts are off.";
 
         public StatusView Status
         {
@@ -99,7 +114,14 @@ namespace Cre8Labs.IPSwitcher
                 e.Cancel = true;
                 Notify("info", "Still applying settings. Close again in a moment.");
             };
-            SourceInitialized += (s, e) => UseRoundedCorners();
+            SourceInitialized += (s, e) =>
+            {
+                UseRoundedCorners();
+                var source = (HwndSource)PresentationSource.FromVisual(this);
+                _globalHotkeys = new GlobalHotkeys(source.Handle);
+                _globalHotkeys.Pressed += OnGlobalHotkey;
+                source.AddHook(_globalHotkeys.WndProc);
+            };
             StateChanged += (s, e) => OnStateChanged();
         }
 
@@ -125,6 +147,7 @@ namespace Cre8Labs.IPSwitcher
             NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
             NetworkChange.NetworkAvailabilityChanged -= OnNetworkChanged;
             _pollTimer.Stop();
+            _globalHotkeys?.Clear();
         }
 
         void OnNetworkChanged(object sender, EventArgs e) =>
@@ -207,9 +230,10 @@ namespace Cre8Labs.IPSwitcher
         void RebuildPresets()
         {
             Presets.Clear();
-            for (var i = 0; i < _config.Presets.Count; i++) Presets.Add(new PresetItem(_config.Presets[i], i));
+            for (var i = 0; i < _config.Presets.Count; i++) Presets.Add(new PresetItem(_config.Presets[i], i, _config.Shortcuts.Enabled));
             Raise(nameof(NoPresets));
             UpdateActiveTiles();
+            RebuildBindings();
         }
 
         double _tileWidth = 236;
@@ -311,15 +335,21 @@ namespace Cre8Labs.IPSwitcher
             Mouse.OverrideCursor = busy ? Cursors.AppStarting : null;
         }
 
-        Preset ShowEditor(Preset preset, string title)
+        Preset ShowEditor(Preset preset, string title, Preset editing = null)
         {
-            var editor = new PresetEditorWindow(preset, Status, title) { Owner = this };
-            return editor.ShowDialog() == true ? editor.Result : null;
+            var editor = new PresetEditorWindow(preset, Status, title, s => UsedBy(s, editing), _config.Shortcuts.Enabled && _config.Shortcuts.Global)
+            {
+                Owner = this,
+            };
+            // Background hotkeys would swallow the keys being recorded, so pause them while the dialog is open.
+            _globalHotkeys?.Clear();
+            try { return editor.ShowDialog() == true ? editor.Result : null; }
+            finally { RegisterGlobalHotkeys(); }
         }
 
         void NewPreset()
         {
-            var preset = ShowEditor(null, "New preset");
+            var preset = ShowEditor(new Preset { Hotkey = _config.NextFreeDigit() }, "New preset");
             if (preset == null) return;
             _config.Presets.Add(preset);
             CommitPresets();
@@ -358,7 +388,7 @@ namespace Cre8Labs.IPSwitcher
         {
             var item = ItemOf(sender);
             if (item == null) return;
-            var edited = ShowEditor(item.Model, "Edit preset");
+            var edited = ShowEditor(item.Model, "Edit preset", item.Model);
             if (edited == null) return;
             _config.Presets[item.Index] = edited;
             CommitPresets();
@@ -371,6 +401,7 @@ namespace Cre8Labs.IPSwitcher
             if (item == null) return;
             var copy = item.Model.Clone();
             copy.Name += " copy";
+            copy.Hotkey = _config.NextFreeDigit();
             _config.Presets.Insert(item.Index + 1, copy);
             CommitPresets();
         }
@@ -509,28 +540,92 @@ namespace Cre8Labs.IPSwitcher
 
         async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.F5)
-            {
-                e.Handled = true;
-                await ReloadAdaptersAsync();
-                return;
-            }
-            if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                e.Handled = true;
-                NewPreset();
-                return;
-            }
-            if (Keyboard.FocusedElement is TextBox || Keyboard.Modifiers != ModifierKeys.None) return;
-
-            var n = -1;
-            if (e.Key >= Key.D0 && e.Key <= Key.D9) n = e.Key - Key.D0;
-            else if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) n = e.Key - Key.NumPad0;
-            if (n < 0) return;
-
+            if (!_config.Shortcuts.Enabled || e.Handled) return;
+            var shortcut = Shortcut.FromKeyEvent(e);
+            if (shortcut.IsEmpty || !_bindings.TryGetValue(shortcut, out var action)) return;
+            // Plain keys keep typing normally in text boxes; only Ctrl, Alt or Win combinations act there.
+            if (Keyboard.FocusedElement is TextBox && !shortcut.HasStrongModifier) return;
             e.Handled = true;
-            if (n == 0) await ApplyDhcpAsync();
-            else if (n <= Presets.Count) await ApplyPresetAsync(Presets[n - 1]);
+            await action.Run();
+        }
+
+        async void OnGlobalHotkey(Shortcut shortcut)
+        {
+            if (!_bindings.TryGetValue(shortcut, out var action)) return;
+            if (action.NeedsWindow)
+            {
+                if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+                Activate();
+            }
+            await action.Run();
+        }
+
+        /// <summary>Maps each enabled shortcut to its action, updates tile badges, and registers background hotkeys.</summary>
+        void RebuildBindings()
+        {
+            _bindings.Clear();
+            var s = _config.Shortcuts;
+            DhcpItem.HotkeyText = s.Enabled ? Shortcut.Parse(s.Dhcp).Display : "";
+            Raise(nameof(ShortcutHint));
+            if (s.Enabled)
+            {
+                Bind(s.Dhcp, "Switch to DHCP", ApplyDhcpAsync);
+                Bind(s.NewPreset, "New preset", () => { NewPreset(); return Task.CompletedTask; }, needsWindow: true);
+                Bind(s.Refresh, "Refresh adapters", ReloadAdaptersAsync);
+                foreach (var item in Presets)
+                {
+                    var target = item;
+                    Bind(target.Model.Hotkey, target.Name, () => ApplyPresetAsync(target));
+                }
+            }
+            RegisterGlobalHotkeys();
+        }
+
+        void Bind(string gesture, string label, Func<Task> run, bool needsWindow = false)
+        {
+            var shortcut = Shortcut.Parse(gesture);
+            // First one wins if a hand-edited file has duplicates.
+            if (shortcut.IsEmpty || shortcut.IsReserved || _bindings.ContainsKey(shortcut)) return;
+            _bindings[shortcut] = new ShortcutAction { Label = label, Run = run, NeedsWindow = needsWindow };
+        }
+
+        void RegisterGlobalHotkeys()
+        {
+            if (_globalHotkeys == null) return;
+            _globalHotkeys.Clear();
+            if (!_config.Shortcuts.Enabled || !_config.Shortcuts.Global) return;
+
+            var taken = _bindings.Keys.Where(k => k.HasStrongModifier && !_globalHotkeys.Register(k)).Select(k => k.Display).ToList();
+            if (taken.Count > 0)
+                Notify("error", $"Another app already uses {string.Join(", ", taken)}, so " +
+                    (taken.Count == 1 ? "it only works" : "they only work") + " while IP Switcher is focused.");
+        }
+
+        /// <summary>The action already using a shortcut, ignoring <paramref name="exclude"/>, or null.</summary>
+        string UsedBy(Shortcut shortcut, Preset exclude)
+        {
+            if (shortcut.IsEmpty) return null;
+            var s = _config.Shortcuts;
+            if (Shortcut.Parse(s.Dhcp).Equals(shortcut)) return "Switch to DHCP";
+            if (Shortcut.Parse(s.NewPreset).Equals(shortcut)) return "New preset";
+            if (Shortcut.Parse(s.Refresh).Equals(shortcut)) return "Refresh adapters";
+            var preset = _config.Presets.FirstOrDefault(p => p != exclude && Shortcut.Parse(p.Hotkey).Equals(shortcut));
+            return preset == null ? null : $"\u201C{preset.Name}\u201D";
+        }
+
+        void Shortcuts_Click(object sender, RoutedEventArgs e)
+        {
+            _globalHotkeys?.Clear();
+            var window = new ShortcutsWindow(_config) { Owner = this };
+            if (window.ShowDialog() != true)
+            {
+                RegisterGlobalHotkeys();
+                return;
+            }
+            _config.Shortcuts = window.ResultSettings;
+            for (var i = 0; i < _config.Presets.Count; i++) _config.Presets[i].Hotkey = window.ResultPresetHotkeys[i];
+            CommitPresets();
+            Notify("ok", _config.Shortcuts.Enabled ? "Keyboard shortcuts saved" : "Keyboard shortcuts are off");
         }
 
         // ------------------------------------------------------------------ feedback

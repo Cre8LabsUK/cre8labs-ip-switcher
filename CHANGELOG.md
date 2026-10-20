@@ -6,6 +6,10 @@ All notable changes to this project are listed here. The format follows [Keep a 
 
 ### Added
 
+- Keyboard shortcuts settings (keyboard button in the title bar): turn shortcuts on or off, reassign any key or combination per preset and for DHCP, New preset and Refresh, with conflict checks and Reset to defaults
+- Optional background mode: shortcuts with Ctrl, Alt or Win also work while IP Switcher is not focused
+- Shortcut field in the preset editor. Shortcuts now belong to the preset, so reordering tiles keeps them
+- Design plan for a built-in DHCP pool (`docs/design/dhcp-pool.md`)
 - `--demo` mode with sample adapters and presets, for screenshots and UI work. It never changes the network or saves presets.
 - Screen reader names for icon-only buttons and preset tiles
 

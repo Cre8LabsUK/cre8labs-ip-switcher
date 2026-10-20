@@ -144,6 +144,9 @@
           <TextBlock Text="IP Switcher" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <Button Style="{StaticResource CaptionButton}" Content="&#xE765;" FontSize="15" Height="56" Click="Shortcuts_Click"
+                  WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Keyboard shortcuts" AutomationProperties.Name="Keyboard shortcuts" />
+          <Border Width="1" Height="20" Background="{StaticResource Line}" Margin="6,0" VerticalAlignment="Center" />
           <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" Height="56" Click="Min_Click" AutomationProperties.Name="Minimize"
                   WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize" />
           <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Height="56" Click="Max_Click" AutomationProperties.Name="Maximize"
@@ -348,14 +351,14 @@
             </StackPanel>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="Presets" FontFamily="{StaticResource DisplayFont}" FontSize="22" FontWeight="SemiBold" />
-              <TextBlock Text="Click a tile to switch. Keys 1-9 pick a preset, 0 is DHCP." FontSize="12.5" Foreground="{StaticResource Muted}"
+              <TextBlock Text="{Binding ShortcutHint}" FontSize="12.5" Foreground="{StaticResource Muted}"
                          Margin="0,2,0,0" TextWrapping="Wrap" />
             </StackPanel>
           </DockPanel>
 
           <!-- DHCP tile -->
           <Button x:Name="DhcpTile" Grid.Row="1" Style="{StaticResource TileButton}" Height="78" Margin="0,0,14,14" Click="Dhcp_Click" AutomationProperties.Name="Switch to DHCP"
-                  DataContext="{Binding DhcpItem}" ToolTip="Shortcut: press 0">
+                  DataContext="{Binding DhcpItem}">
             <DockPanel>
               <Border DockPanel.Dock="Left" Width="44" Height="44" CornerRadius="12" Background="{StaticResource BrandGradient}" VerticalAlignment="Center">
                 <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE895;" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -366,8 +369,9 @@
                         Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
                   <TextBlock Text="Active" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource Success}" VerticalAlignment="Center" />
                 </Border>
-                <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}" BorderThickness="1">
-                  <TextBlock Text="0" FontFamily="{StaticResource MonoFont}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Muted}"
+                <Border MinWidth="26" Height="26" Padding="7,0" CornerRadius="7" Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                        Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}">
+                  <TextBlock Text="{Binding HotkeyText}" FontFamily="{StaticResource MonoFont}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Muted}"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
               </StackPanel>
@@ -401,16 +405,16 @@
                           <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <DockPanel>
-                          <Border DockPanel.Dock="Left" Width="24" Height="24" CornerRadius="6" Background="{StaticResource SurfaceAlt}"
+                          <Border DockPanel.Dock="Left" MinWidth="24" Height="24" Padding="6,0" Margin="0,0,10,0" CornerRadius="6" Background="{StaticResource SurfaceAlt}"
                                   BorderBrush="{StaticResource Line}" BorderThickness="1" VerticalAlignment="Center"
                                   Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="{Binding Hotkey}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" FontWeight="SemiBold"
+                            <TextBlock Text="{Binding HotkeyText}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" FontWeight="SemiBold"
                                        Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                           </Border>
                           <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,-6,-8,0"
                                   Content="&#xE712;" Click="More_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="More"
                                   AutomationProperties.Name="{Binding Name, StringFormat=More options for {0}}" />
-                          <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Margin="10,0,4,0"
+                          <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Margin="0,0,4,0"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
                         <TextBlock Grid.Row="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
