@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+dist/
+release-build/
+preview-build/
+*.exe
+*.pdb
+
+# Local data: personal presets never belong in the repo
+presets.json
+presets.json.bad
+presets.json.tmp
+
+# Editors
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Earlier PowerShell prototype, kept locally only
+IPSwitcher.ps1
+IPSwitcher.bat

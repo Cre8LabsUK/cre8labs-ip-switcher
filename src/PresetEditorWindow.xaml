@@ -1,0 +1,123 @@
+<Window x:Class="Cre8Labs.IPSwitcher.PresetEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Preset"
+        Width="500" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Icon="Assets/app.ico"
+        Background="{StaticResource Surface}"
+        FontFamily="{StaticResource UiFont}"
+        Foreground="{StaticResource Ink}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="64" ResizeBorderThickness="0" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False" />
+  </WindowChrome.WindowChrome>
+
+  <Window.Resources>
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource Muted}" />
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style x:Key="FieldError" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{StaticResource Danger}" />
+      <Setter Property="Margin" Value="2,5,0,0" />
+      <Setter Property="Visibility" Value="Collapsed" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </Window.Resources>
+
+  <StackPanel>
+    <!-- Header -->
+    <Grid Height="64">
+      <StackPanel VerticalAlignment="Center" Margin="24,0,0,0">
+        <TextBlock x:Name="TitleText" Text="New preset" FontFamily="{StaticResource DisplayFont}" FontSize="18" FontWeight="SemiBold" />
+        <TextBlock Text="Saved settings you can apply to any adapter in one click" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,1,0,0" />
+      </StackPanel>
+      <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" HorizontalAlignment="Right" VerticalAlignment="Top" Height="40"
+              WindowChrome.IsHitTestVisibleInChrome="True" IsCancel="True" Click="Cancel_Click" />
+    </Grid>
+    <Border Height="3" Background="{StaticResource BrandGradientH}" />
+
+    <!-- Fields -->
+    <StackPanel Margin="24,20,24,8">
+      <TextBlock Style="{StaticResource FieldLabel}" Text="Name" />
+      <TextBox x:Name="NameBox" Style="{StaticResource Field}" Tag="e.g. Site A cameras" />
+      <TextBlock x:Name="NameError" Style="{StaticResource FieldError}" />
+
+      <Grid Margin="0,16,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="14" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Style="{StaticResource FieldLabel}" Text="IP address" />
+          <TextBox x:Name="IpBox" Style="{StaticResource MonoField}" Tag="192.168.1.50" TextChanged="Field_Changed" />
+          <TextBlock x:Name="IpError" Style="{StaticResource FieldError}" />
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Style="{StaticResource FieldLabel}" Text="Subnet mask" />
+          <TextBox x:Name="MaskBox" Style="{StaticResource MonoField}" Tag="255.255.255.0 or /24" TextChanged="Field_Changed" />
+          <TextBlock x:Name="MaskError" Style="{StaticResource FieldError}" />
+        </StackPanel>
+      </Grid>
+
+      <TextBlock Style="{StaticResource FieldLabel}" Text="Gateway (optional)" Margin="0,16,0,6" />
+      <TextBox x:Name="GatewayBox" Style="{StaticResource MonoField}" Tag="Leave empty for a direct link" TextChanged="Field_Changed" />
+      <TextBlock x:Name="GatewayError" Style="{StaticResource FieldError}" />
+
+      <Grid Margin="0,16,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="14" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Style="{StaticResource FieldLabel}" Text="DNS 1 (optional)" />
+          <TextBox x:Name="Dns1Box" Style="{StaticResource MonoField}" Tag="e.g. 1.1.1.1" />
+          <TextBlock x:Name="Dns1Error" Style="{StaticResource FieldError}" />
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Style="{StaticResource FieldLabel}" Text="DNS 2 (optional)" />
+          <TextBox x:Name="Dns2Box" Style="{StaticResource MonoField}" Tag="e.g. 8.8.8.8" />
+          <TextBlock x:Name="Dns2Error" Style="{StaticResource FieldError}" />
+        </StackPanel>
+      </Grid>
+
+      <Border Margin="0,18,0,0" CornerRadius="10" Padding="14,10" Background="{StaticResource SurfaceAlt}">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE946;" Foreground="{StaticResource Blue}" FontSize="13" VerticalAlignment="Center" Margin="0,0,9,0" />
+            <TextBlock x:Name="InfoText" Text="Enter an IP address and mask" FontSize="12.5" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+          </StackPanel>
+          <StackPanel x:Name="WarningRow" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
+            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7BA;" Foreground="{StaticResource Warning}" FontSize="13" VerticalAlignment="Center" Margin="0,0,9,0" />
+            <TextBlock x:Name="WarningText" FontSize="12.5" Foreground="{StaticResource Warning}" TextWrapping="Wrap" MaxWidth="390" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <!-- Footer -->
+    <Border Margin="0,12,0,0" Padding="16,14,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Width="96" Click="Cancel_Click" />
+          <Button Style="{StaticResource PrimaryButton}" Content="Save preset" Margin="10,0,0,0" IsDefault="True" Click="Save_Click" />
+        </StackPanel>
+        <Button Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Click="UseCurrent_Click"
+                ToolTip="Fill in the selected adapter's current settings">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE8F4;" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource Blue}" />
+            <TextBlock Text="Use current settings" VerticalAlignment="Center" Foreground="{StaticResource Blue}" FontWeight="SemiBold" />
+          </StackPanel>
+        </Button>
+      </DockPanel>
+    </Border>
+  </StackPanel>
+</Window>

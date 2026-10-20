@@ -1,0 +1,525 @@
+<Window x:Class="Cre8Labs.IPSwitcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cre8Labs IP Switcher"
+        Width="1100" Height="780" MinWidth="900" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/app.ico"
+        Background="{StaticResource Bg}"
+        FontFamily="{StaticResource UiFont}"
+        Foreground="{StaticResource Ink}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="56" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False" />
+  </WindowChrome.WindowChrome>
+
+  <Window.Resources>
+    <ContextMenu x:Key="PresetMenu" x:Shared="False">
+      <MenuItem Header="Apply" Tag="&#xE73E;" Click="MenuApply_Click" />
+      <MenuItem Header="Edit..." Tag="&#xE70F;" Click="MenuEdit_Click" />
+      <MenuItem Header="Duplicate" Tag="&#xE8C8;" Click="MenuDuplicate_Click" />
+      <Separator />
+      <MenuItem Header="Move left" Tag="&#xE76B;" Click="MenuMoveLeft_Click" />
+      <MenuItem Header="Move right" Tag="&#xE76C;" Click="MenuMoveRight_Click" />
+      <Separator />
+      <MenuItem Header="Delete" Tag="&#xE74D;" Foreground="{StaticResource Danger}" Click="MenuDelete_Click" />
+    </ContextMenu>
+
+    <!-- Preset tile: lifts on hover, gradient ring when active -->
+    <Style x:Key="TileButton" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="16,14" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid x:Name="root" RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform>
+                <ScaleTransform x:Name="scale" />
+              </Grid.RenderTransform>
+              <Border x:Name="card" CornerRadius="14" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                <Border.Effect>
+                  <DropShadowEffect x:Name="shadow" BlurRadius="18" ShadowDepth="2" Direction="270" Opacity="0.06" Color="#0E2744" />
+                </Border.Effect>
+              </Border>
+              <Border x:Name="ring" CornerRadius="14" BorderBrush="{StaticResource BrandGradient}" BorderThickness="2" Opacity="0" />
+              <Border x:Name="focus" CornerRadius="14" BorderBrush="{StaticResource Teal}" BorderThickness="2" Opacity="0" />
+              <ContentPresenter Margin="{TemplateBinding Padding}" />
+            </Grid>
+            <ControlTemplate.Triggers>
+              <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter TargetName="ring" Property="Opacity" Value="1" />
+              </DataTrigger>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="card" Property="BorderBrush" Value="{StaticResource LineStrong}" />
+                <Trigger.EnterActions>
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="Opacity" To="0.14" Duration="0:0:0.18" />
+                      <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="26" Duration="0:0:0.18" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="Opacity" To="0.06" Duration="0:0:0.2" />
+                      <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="18" Duration="0:0:0.2" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </Trigger.ExitActions>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Trigger.EnterActions>
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation Storyboard.TargetName="scale" Storyboard.TargetProperty="ScaleX" To="0.97" Duration="0:0:0.08" />
+                      <DoubleAnimation Storyboard.TargetName="scale" Storyboard.TargetProperty="ScaleY" To="0.97" Duration="0:0:0.08" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                  <BeginStoryboard>
+                    <Storyboard>
+                      <DoubleAnimation Storyboard.TargetName="scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15" />
+                      <DoubleAnimation Storyboard.TargetName="scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15" />
+                    </Storyboard>
+                  </BeginStoryboard>
+                </Trigger.ExitActions>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="focus" Property="Opacity" Value="1" />
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="root" Property="Opacity" Value="0.55" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="Chip" TargetType="Border">
+      <Setter Property="CornerRadius" Value="11" />
+      <Setter Property="Padding" Value="9,3" />
+      <Setter Property="Height" Value="22" />
+    </Style>
+
+    <Style x:Key="DetailLabel" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Muted}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="Margin" Value="0,5,16,5" />
+    </Style>
+    <Style x:Key="DetailValue" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="Margin" Value="0,5,0,5" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+  </Window.Resources>
+
+  <Border x:Name="RootBorder">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="56" />
+        <RowDefinition Height="3" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="44" />
+      </Grid.RowDefinitions>
+
+      <!-- ===== Title bar ===== -->
+      <Grid Grid.Row="0" Background="{StaticResource Surface}">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0,0,0">
+          <Image Source="Assets/mark.png" Height="30" RenderOptions.BitmapScalingMode="HighQuality" />
+          <TextBlock VerticalAlignment="Center" Margin="10,0,0,1" FontFamily="{StaticResource DisplayFont}" FontSize="19" Foreground="{StaticResource Navy}">
+            <Run Text="Cre8" FontWeight="Bold" /><Run Text="Labs" />
+          </TextBlock>
+          <Border Width="1" Height="20" Background="{StaticResource Line}" Margin="14,0" />
+          <TextBlock Text="IP Switcher" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+          <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" Height="56" Click="Min_Click"
+                  WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Minimize" />
+          <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Height="56" Click="Max_Click"
+                  WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Maximize" />
+          <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" Height="56" Click="Close_Click"
+                  WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Close" />
+        </StackPanel>
+      </Grid>
+      <Border Grid.Row="1" Background="{StaticResource BrandGradientH}" />
+
+      <!-- ===== Body ===== -->
+      <Grid Grid.Row="2" Margin="22,18,22,12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="340" />
+          <ColumnDefinition Width="22" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Admin warning (preview builds only) -->
+        <Border Grid.ColumnSpan="3" Margin="0,0,0,16" CornerRadius="12" Padding="16,10" Background="{StaticResource WarningSoft}"
+                Visibility="{Binding NotAdmin, Converter={StaticResource BoolToVis}}">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Height="34" Content="Restart as admin" Click="RestartAdmin_Click" />
+            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE7BA;" Foreground="{StaticResource Warning}" FontSize="16" VerticalAlignment="Center" />
+            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource Warning}" FontWeight="SemiBold"
+                       Text="Read-only mode. Changing IP settings needs administrator rights." />
+          </DockPanel>
+        </Border>
+
+        <!-- ===== Left column: adapter + ping ===== -->
+        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" Focusable="False" Margin="-12,-12,-12,0" Padding="12,12,12,0">
+        <StackPanel>
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" Click="Refresh_Click" ToolTip="Refresh (F5)" Margin="0,-10,-10,0" />
+                <TextBlock Style="{StaticResource Overline}" Text="NETWORK ADAPTER" VerticalAlignment="Center" />
+              </DockPanel>
+              <ComboBox x:Name="AdapterCombo" Style="{StaticResource Combo}" Height="52" Margin="0,8,0,0"
+                        ItemsSource="{Binding Adapters}" SelectionChanged="Adapter_SelectionChanged">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <DockPanel>
+                      <Ellipse x:Name="dot" Width="8" Height="8" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                      <StackPanel>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </DockPanel>
+                    <DataTemplate.Triggers>
+                      <DataTrigger Binding="{Binding IsUp}" Value="True">
+                        <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                      </DataTrigger>
+                    </DataTemplate.Triggers>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <Border Height="1" Background="{StaticResource Line}" Margin="0,18" />
+
+              <TextBlock Style="{StaticResource Overline}" Text="CURRENT ADDRESS" />
+              <DockPanel Margin="0,6,0,0">
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE8C8;" Click="CopyIp_Click" ToolTip="Copy IP" VerticalAlignment="Center" Margin="0,0,-10,0" />
+                <TextBlock VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis">
+                  <Run Text="{Binding Status.Ip, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="25" FontWeight="SemiBold" />
+                  <Run Text="{Binding Status.Prefix, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="16" Foreground="{StaticResource Faint}" />
+                </TextBlock>
+              </DockPanel>
+
+              <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Border>
+                  <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Chip}">
+                      <Setter Property="Background" Value="{StaticResource PurpleSoft}" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Status.IsDhcp}" Value="True">
+                          <Setter Property="Background" Value="{StaticResource TealSoft}" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </Border.Style>
+                  <TextBlock Text="{Binding Status.ModeText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource Purple}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding Status.IsDhcp}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Blue}" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
+                </Border>
+                <Border Margin="8,0,0,0" CornerRadius="11" Padding="9,3" Height="22" Background="{StaticResource SurfaceAlt}"
+                        BorderBrush="{StaticResource Line}" BorderThickness="1">
+                  <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,6,0">
+                      <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                          <Setter Property="Fill" Value="{StaticResource Faint}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding Status.IsUp}" Value="True">
+                              <Setter Property="Fill" Value="{StaticResource Success}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding Status.LinkText}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+
+              <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition />
+                  <RowDefinition />
+                  <RowDefinition />
+                  <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource DetailLabel}" Text="Gateway" />
+                <TextBlock Style="{StaticResource DetailValue}" Grid.Column="1" Text="{Binding Status.Gateway}" />
+                <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="1" Text="DNS" />
+                <TextBlock Style="{StaticResource DetailValue}" Grid.Row="1" Grid.Column="1" Text="{Binding Status.Dns}" ToolTip="{Binding Status.Dns}" />
+                <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="2" Text="MAC" />
+                <TextBlock Style="{StaticResource DetailValue}" Grid.Row="2" Grid.Column="1" Text="{Binding Status.Mac}" />
+                <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="3" Text="Extra IPs"
+                           Visibility="{Binding Status.HasExtra, Converter={StaticResource BoolToVis}}" />
+                <TextBlock Style="{StaticResource DetailValue}" Grid.Row="3" Grid.Column="1" Text="{Binding Status.Extra}" TextWrapping="Wrap"
+                           Visibility="{Binding Status.HasExtra, Converter={StaticResource BoolToVis}}" />
+              </Grid>
+
+              <Border Margin="0,10,0,0" CornerRadius="10" Padding="12,8" Background="{StaticResource SurfaceAlt}"
+                      Visibility="{Binding Status.HasNote, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding Status.Note}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource Muted}" />
+              </Border>
+
+              <Button Style="{StaticResource SecondaryButton}" Margin="0,16,0,0" HorizontalAlignment="Stretch" Click="OpenNcpa_Click">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE839;" VerticalAlignment="Center" Margin="0,0,8,0" />
+                  <TextBlock Text="Windows network connections" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+            <StackPanel>
+              <TextBlock Style="{StaticResource Overline}" Text="QUICK PING" />
+              <DockPanel Margin="0,10,0,0">
+                <Button x:Name="PingButton" DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Ping" Margin="8,0,0,0" Width="76" Click="Ping_Click" />
+                <TextBox x:Name="PingBox" Style="{StaticResource MonoField}" Tag="Gateway or address" KeyDown="PingBox_KeyDown" />
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding PingResults}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                      <Ellipse x:Name="dot" Width="7" Height="7" Fill="{StaticResource Danger}" VerticalAlignment="Center" Margin="2,0,8,0" />
+                      <TextBlock Text="{Binding Text}" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource Muted}" />
+                    </StackPanel>
+                    <DataTemplate.Triggers>
+                      <DataTrigger Binding="{Binding Ok}" Value="True">
+                        <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                      </DataTrigger>
+                    </DataTemplate.Triggers>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Right column: presets ===== -->
+        <Grid Grid.Row="1" Grid.Column="2">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <DockPanel Margin="0,0,0,14">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+              <CheckBox x:Name="AddExtraSwitch" Style="{StaticResource Switch}" Content="Add as extra IP" VerticalAlignment="Center"
+                        ToolTip="Add the preset IP alongside the current static IP instead of replacing it" />
+              <Button Style="{StaticResource PrimaryButton}" Margin="18,0,0,0" Click="NewPreset_Click" ToolTip="New preset (Ctrl+N)">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE710;" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0" />
+                  <TextBlock Text="New preset" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Presets" FontFamily="{StaticResource DisplayFont}" FontSize="22" FontWeight="SemiBold" />
+              <TextBlock Text="Click a tile to switch. Keys 1-9 pick a preset, 0 is DHCP." FontSize="12.5" Foreground="{StaticResource Muted}"
+                         Margin="0,2,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+          </DockPanel>
+
+          <!-- DHCP tile -->
+          <Button x:Name="DhcpTile" Grid.Row="1" Style="{StaticResource TileButton}" Height="78" Margin="0,0,14,14" Click="Dhcp_Click"
+                  DataContext="{Binding DhcpItem}" ToolTip="Shortcut: press 0">
+            <DockPanel>
+              <Border DockPanel.Dock="Left" Width="44" Height="44" CornerRadius="12" Background="{StaticResource BrandGradient}" VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE895;" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Control Template="{StaticResource SpinnerTemplate}" Margin="0,0,12,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+                <Border Style="{StaticResource Chip}" Background="{StaticResource SuccessSoft}" Margin="0,0,12,0"
+                        Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                  <TextBlock Text="Active" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource Success}" VerticalAlignment="Center" />
+                </Border>
+                <Border Width="26" Height="26" CornerRadius="7" Background="{StaticResource SurfaceAlt}" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                  <TextBlock Text="0" FontFamily="{StaticResource MonoFont}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Muted}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+              </StackPanel>
+              <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="Automatic (DHCP)" FontSize="15" FontWeight="SemiBold" />
+                <TextBlock Text="Let the router hand out the address and DNS" FontSize="12.5" Foreground="{StaticResource Muted}" Margin="0,2,0,0" />
+              </StackPanel>
+            </DockPanel>
+          </Button>
+
+          <!-- Preset tiles -->
+          <ScrollViewer x:Name="PresetScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"
+                        Margin="-12,-12,0,0" Padding="12,12,0,0">
+            <Grid>
+              <ItemsControl x:Name="PresetList" ItemsSource="{Binding Presets}" Focusable="False" SizeChanged="PresetList_SizeChanged">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Style="{StaticResource TileButton}" Height="122" Margin="0,0,14,14"
+                            Width="{Binding DataContext.TileWidth, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            Click="PresetTile_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="{Binding Tooltip}">
+                      <Grid>
+                        <Grid.RowDefinitions>
+                          <RowDefinition Height="Auto" />
+                          <RowDefinition Height="*" />
+                          <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <DockPanel>
+                          <Border DockPanel.Dock="Left" Width="24" Height="24" CornerRadius="6" Background="{StaticResource SurfaceAlt}"
+                                  BorderBrush="{StaticResource Line}" BorderThickness="1" VerticalAlignment="Center"
+                                  Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{Binding Hotkey}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" FontWeight="SemiBold"
+                                       Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                          </Border>
+                          <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,-6,-8,0"
+                                  Content="&#xE712;" Click="More_Click" ContextMenu="{StaticResource PresetMenu}" ToolTip="More" />
+                          <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Margin="10,0,4,0"
+                                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                          <Run Text="{Binding Ip, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="19" FontWeight="SemiBold" />
+                          <Run Text="{Binding PrefixText, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="13.5" Foreground="{StaticResource Faint}" />
+                        </TextBlock>
+                        <DockPanel Grid.Row="2">
+                          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Control Template="{StaticResource SpinnerTemplate}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
+                            <Border Style="{StaticResource Chip}" Background="{StaticResource SuccessSoft}"
+                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                              <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="6" Height="6" Fill="{StaticResource Success}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                <TextBlock Text="Active" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource Success}" VerticalAlignment="Center" />
+                              </StackPanel>
+                            </Border>
+                          </StackPanel>
+                          <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <!-- Empty state -->
+              <Border Visibility="{Binding NoPresets, Converter={StaticResource BoolToVis}}" Margin="0,0,14,0" Padding="24,32"
+                      CornerRadius="14" BorderBrush="{StaticResource LineStrong}" BorderThickness="1" Background="{StaticResource SurfaceAlt}">
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Text="No presets yet" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                  <TextBlock Text="Save the networks you switch between, then change IP in one click." Foreground="{StaticResource Muted}"
+                             Margin="0,4,0,14" HorizontalAlignment="Center" />
+                  <Button Style="{StaticResource PrimaryButton}" Content="Create your first preset" HorizontalAlignment="Center" Click="NewPreset_Click" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </ScrollViewer>
+        </Grid>
+
+        <!-- Toast -->
+        <Border x:Name="Toast" Grid.RowSpan="2" Grid.ColumnSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"
+                CornerRadius="12" Background="#0E2744" Padding="16,10" Opacity="0" IsHitTestVisible="False" Effect="{StaticResource PopupShadow}">
+          <Border.RenderTransform>
+            <TranslateTransform x:Name="ToastShift" Y="12" />
+          </Border.RenderTransform>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="ToastIcon" FontFamily="{StaticResource IconFont}" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock x:Name="ToastText" Foreground="White" FontSize="13" VerticalAlignment="Center" MaxWidth="520" TextWrapping="Wrap" />
+            <Button x:Name="ToastAction" Style="{StaticResource GhostButton}" Foreground="#7FDCEC" Height="30" Margin="12,0,-6,0"
+                    FontWeight="SemiBold" Visibility="Collapsed" Click="ToastAction_Click" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <!-- ===== Activity log ===== -->
+      <Border Grid.Row="3" Height="170" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
+              Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVis}}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="22,10">
+          <ItemsControl ItemsSource="{Binding Log}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" Margin="0,3">
+                  <TextBlock Text="{Binding Time}" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource Faint}" Width="70" />
+                  <Ellipse x:Name="dot" Width="7" Height="7" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                  <TextBlock Text="{Binding Text}" FontSize="12.5" TextWrapping="Wrap" MaxWidth="900" />
+                </StackPanel>
+                <DataTemplate.Triggers>
+                  <DataTrigger Binding="{Binding Kind}" Value="ok">
+                    <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Kind}" Value="error">
+                    <Setter TargetName="dot" Property="Fill" Value="{StaticResource Danger}" />
+                  </DataTrigger>
+                </DataTemplate.Triggers>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+
+      <!-- ===== Footer ===== -->
+      <Border Grid.Row="4" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+        <DockPanel Margin="22,0,12,0">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock x:Name="BrandText" Text="cre8labs.uk" Foreground="{StaticResource Faint}" FontSize="12" VerticalAlignment="Center" Margin="0,0,14,0" />
+            <ToggleButton x:Name="LogToggle" Cursor="Hand" FocusVisualStyle="{x:Null}">
+              <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                  <Border x:Name="bd" CornerRadius="8" Padding="10,5" Background="Transparent">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE81C;" FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0" Foreground="{StaticResource Muted}" />
+                      <TextBlock Text="Activity" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                      <Setter TargetName="bd" Property="Background" Value="{StaticResource Hover}" />
+                    </Trigger>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="bd" Property="Background" Value="{StaticResource TealSoft}" />
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </ToggleButton.Template>
+            </ToggleButton>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Ellipse x:Name="FooterDot" Width="7" Height="7" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,9,0" />
+            <TextBlock x:Name="FooterText" Text="Ready" FontSize="12.5" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Border>
+</Window>
