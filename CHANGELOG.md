@@ -9,7 +9,8 @@ All notable changes to this project are listed here. The format follows [Keep a 
 - Keyboard shortcuts settings (keyboard button in the title bar): turn shortcuts on or off, reassign any key or combination per preset and for DHCP, New preset and Refresh, with conflict checks and Reset to defaults
 - Optional background mode: shortcuts with Ctrl, Alt or Win also work while IP Switcher is not focused
 - Shortcut field in the preset editor. Shortcuts now belong to the preset, so reordering tiles keeps them
-- Design plan for a built-in DHCP pool (`docs/design/dhcp-pool.md`)
+- Built-in DHCP pool (preview): serve a network you choose from a wired adapter, with a live Devices list, reservations so each camera always gets its planned address, Reserve all, and safety checks (wired adapters only, no overlap with other adapters, warning on live networks, stops if another DHCP server answers)
+- Automated tests for the DHCP pool, run on every build
 - `--demo` mode with sample adapters and presets, for screenshots and UI work. It never changes the network or saves presets.
 - Screen reader names for icon-only buttons and preset tiles
 

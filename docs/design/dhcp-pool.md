@@ -1,6 +1,6 @@
 # Design: built-in DHCP pool
 
-**Status:** proposed, not started
+**Status:** core, safety checks, reservations and UI built and unit tested. Phase 1 (validation on real Windows networking and devices) in progress.
 **Goal:** hand out IP addresses to devices plugged into the selected adapter, and show which device got which address.
 
 ## Why

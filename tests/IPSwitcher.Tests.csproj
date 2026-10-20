@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Plain console runner with no test framework packages: run the exe, exit code 0 means every check passed. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>IPSwitcher.Tests</AssemblyName>
+    <RootNamespace>Cre8Labs.IPSwitcher.Tests</RootNamespace>
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\IPSwitcher.csproj" />
+  </ItemGroup>
+
+</Project>

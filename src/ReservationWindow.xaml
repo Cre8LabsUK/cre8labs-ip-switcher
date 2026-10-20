@@ -1,0 +1,80 @@
+<Window x:Class="Cre8Labs.IPSwitcher.ReservationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Reserve an IP"
+        Width="460" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Icon="Assets/app.ico"
+        Background="{StaticResource Surface}"
+        FontFamily="{StaticResource UiFont}"
+        Foreground="{StaticResource Ink}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="64" ResizeBorderThickness="0" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False" />
+  </WindowChrome.WindowChrome>
+
+  <Window.Resources>
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource Muted}" />
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style x:Key="FieldError" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{StaticResource Danger}" />
+      <Setter Property="Margin" Value="2,5,0,0" />
+      <Setter Property="Visibility" Value="Collapsed" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </Window.Resources>
+
+  <StackPanel>
+    <Grid Height="64">
+      <StackPanel VerticalAlignment="Center" Margin="24,0,0,0">
+        <TextBlock x:Name="TitleText" Text="Reserve an IP" FontFamily="{StaticResource DisplayFont}" FontSize="18" FontWeight="SemiBold" />
+        <TextBlock Text="This device will always get the same address from the pool" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,1,0,0" />
+      </StackPanel>
+      <Button Style="{StaticResource CloseCaptionButton}" Content="&#xE8BB;" HorizontalAlignment="Right" VerticalAlignment="Top" Height="40"
+              WindowChrome.IsHitTestVisibleInChrome="True" IsCancel="True" Click="Cancel_Click" AutomationProperties.Name="Close" />
+    </Grid>
+    <Border Height="3" Background="{StaticResource BrandGradientH}" />
+
+    <StackPanel Margin="24,20,24,8">
+      <TextBlock Style="{StaticResource FieldLabel}" Text="Name" />
+      <TextBox x:Name="NameBox" Style="{StaticResource Field}" Tag="e.g. Cam 3 - Gate" />
+
+      <TextBlock Style="{StaticResource FieldLabel}" Text="MAC address" Margin="0,16,0,6" />
+      <TextBox x:Name="MacBox" Style="{StaticResource MonoField}" Tag="Printed on the device label, e.g. 44:19:B6:12:34:56" />
+      <TextBlock x:Name="MacError" Style="{StaticResource FieldError}" />
+
+      <TextBlock Style="{StaticResource FieldLabel}" Text="Reserved IP address" Margin="0,16,0,6" />
+      <TextBox x:Name="IpBox" Style="{StaticResource MonoField}" />
+      <TextBlock x:Name="IpError" Style="{StaticResource FieldError}" />
+
+      <Border Margin="0,18,0,0" CornerRadius="10" Padding="14,10" Background="{StaticResource SurfaceAlt}">
+        <DockPanel>
+          <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE946;" Foreground="{StaticResource Blue}" FontSize="13" VerticalAlignment="Top" Margin="0,2,9,0" />
+          <TextBlock x:Name="InfoText" FontSize="12.5" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+        </DockPanel>
+      </Border>
+    </StackPanel>
+
+    <Border Margin="0,12,0,0" Padding="16,14,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Width="96" Click="Cancel_Click" />
+          <Button Style="{StaticResource PrimaryButton}" Content="Save" Width="96" Margin="10,0,0,0" IsDefault="True" Click="Save_Click" />
+        </StackPanel>
+        <Button x:Name="RemoveButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Click="Remove_Click" Foreground="{StaticResource Danger}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE74D;" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock Text="Remove reservation" VerticalAlignment="Center" FontWeight="SemiBold" />
+          </StackPanel>
+        </Button>
+      </DockPanel>
+    </Border>
+  </StackPanel>
+</Window>

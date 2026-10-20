@@ -138,6 +138,29 @@ namespace Cre8Labs.IPSwitcher
         }
     }
 
+    /// <summary>One row in the Devices panel: a DHCP client, or a reservation not seen yet.</summary>
+    public sealed class DeviceItem
+    {
+        public string Mac { get; set; }
+        public string Ip { get; set; } = "";
+        public string Name { get; set; }
+        public string Detail { get; set; } = "";
+
+        /// <summary>"active", "offered", "idle" (released or expired) or "waiting" (reserved, not seen yet).</summary>
+        public string Kind { get; set; }
+        public string StateText { get; set; }
+        public string TimeLeft { get; set; } = "";
+        public bool IsReserved { get; set; }
+        public string ReservedIp { get; set; } = "";
+
+        /// <summary>Shown when a device still holds an old address and will move to its reservation.</summary>
+        public string MovingNote { get; set; } = "";
+        public bool HasMovingNote => MovingNote.Length > 0;
+        public bool HasDetail => Detail.Length > 0;
+        public bool CanOpen => Kind == "active" && Ip.Length > 0;
+        public string AssignLabel => IsReserved ? "Change reserved IP" : "Reserve an IP for this device";
+    }
+
     public sealed class LogEntry
     {
         public string Time { get; set; } = DateTime.Now.ToString("HH:mm:ss");

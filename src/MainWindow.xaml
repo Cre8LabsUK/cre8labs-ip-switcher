@@ -104,6 +104,81 @@
       </Setter>
     </Style>
 
+    <Style x:Key="PoolLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource Muted}" />
+      <Setter Property="Margin" Value="0,10,0,5" />
+    </Style>
+    <Style x:Key="PoolError" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{StaticResource Danger}" />
+      <Setter Property="Margin" Value="2,4,0,0" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+    <Style x:Key="ColumnHead" TargetType="TextBlock" BasedOn="{StaticResource Overline}">
+      <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+
+    <!-- Footer toggles: Tag is the icon glyph, Content is the label -->
+    <Style x:Key="FooterToggle" TargetType="ToggleButton">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="bd" CornerRadius="8" Padding="10,5" Background="Transparent">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="{TemplateBinding Tag}" FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0" Foreground="{StaticResource Muted}" />
+                <ContentPresenter TextElement.FontSize="12.5" TextElement.FontWeight="SemiBold" TextElement.Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="{StaticResource Hover}" />
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="{StaticResource TealSoft}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- "Advanced" disclosure: chevron turns when open -->
+    <Style x:Key="Disclosure" TargetType="ToggleButton">
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="bd" Background="Transparent" Padding="0,6">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="chev" FontFamily="{StaticResource IconFont}" Text="&#xE76C;" FontSize="10" VerticalAlignment="Center"
+                           Foreground="{StaticResource Blue}" RenderTransformOrigin="0.5,0.5" Margin="0,1,8,0">
+                  <TextBlock.RenderTransform>
+                    <RotateTransform />
+                  </TextBlock.RenderTransform>
+                </TextBlock>
+                <ContentPresenter TextElement.FontSize="12.5" TextElement.FontWeight="SemiBold" TextElement.Foreground="{StaticResource Blue}" />
+              </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="chev" Property="RenderTransform">
+                  <Setter.Value>
+                    <RotateTransform Angle="90" />
+                  </Setter.Value>
+                </Setter>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <Style x:Key="Chip" TargetType="Border">
       <Setter Property="CornerRadius" Value="11" />
       <Setter Property="Padding" Value="9,3" />
@@ -169,8 +244,9 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <StackPanel Grid.ColumnSpan="3">
         <!-- Admin warning (preview builds only) -->
-        <Border Grid.ColumnSpan="3" Margin="0,0,0,16" CornerRadius="12" Padding="16,10" Background="{StaticResource WarningSoft}"
+        <Border Margin="0,0,0,16" CornerRadius="12" Padding="16,10" Background="{StaticResource WarningSoft}"
                 Visibility="{Binding NotAdmin, Converter={StaticResource BoolToVis}}">
           <DockPanel>
             <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Height="34" Content="Restart as admin" Click="RestartAdmin_Click" />
@@ -180,6 +256,47 @@
           </DockPanel>
         </Border>
 
+        <!-- DHCP pool running banner -->
+        <Border Margin="0,0,0,16" CornerRadius="12" Padding="16,9" Visibility="{Binding PoolActive, Converter={StaticResource BoolToVis}}">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Background" Value="{StaticResource TealSoft}" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding PoolKind}" Value="waiting">
+                  <Setter Property="Background" Value="{StaticResource WarningSoft}" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+              <Button Style="{StaticResource SecondaryButton}" Height="34" Content="{Binding DevicesButtonText}" Click="ShowDevices_Click" />
+              <Button Style="{StaticResource SecondaryButton}" Height="34" Margin="8,0,0,0" Content="Stop pool" Foreground="{StaticResource Danger}"
+                      Click="StopPool_Click" AutomationProperties.Name="Stop DHCP pool" />
+            </StackPanel>
+            <Ellipse Width="9" Height="9" VerticalAlignment="Center">
+              <Ellipse.Style>
+                <Style TargetType="Ellipse">
+                  <Setter Property="Fill" Value="{StaticResource Success}" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding PoolKind}" Value="waiting">
+                      <Setter Property="Fill" Value="{StaticResource Warning}" />
+                    </DataTrigger>
+                    <EventTrigger RoutedEvent="Loaded">
+                      <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                          <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.9" />
+                        </Storyboard>
+                      </BeginStoryboard>
+                    </EventTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Ellipse.Style>
+            </Ellipse>
+            <TextBlock Margin="10,0,12,0" VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding PoolBanner}" TextTrimming="CharacterEllipsis" />
+          </DockPanel>
+        </Border>
+        </StackPanel>
         <!-- ===== Left column: adapter + ping ===== -->
         <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" Focusable="False" Margin="-12,-12,-12,0" Padding="12,12,12,0">
         <StackPanel>
@@ -327,6 +444,141 @@
               </ItemsControl>
             </StackPanel>
           </Border>
+
+          <!-- DHCP pool -->
+          <Border Style="{StaticResource Card}" Margin="0,16,0,16">
+            <StackPanel>
+              <DockPanel>
+                <Border DockPanel.Dock="Right" CornerRadius="11" Padding="9,3" Height="22" Visibility="{Binding PoolActive, Converter={StaticResource BoolToVis}}">
+                  <Border.Style>
+                    <Style TargetType="Border">
+                      <Setter Property="Background" Value="{StaticResource SuccessSoft}" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding PoolKind}" Value="waiting">
+                          <Setter Property="Background" Value="{StaticResource WarningSoft}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding PoolKind}" Value="checking">
+                          <Setter Property="Background" Value="{StaticResource TealSoft}" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </Border.Style>
+                  <TextBlock Text="{Binding PoolChipText}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource Success}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding PoolKind}" Value="waiting">
+                            <Setter Property="Foreground" Value="{StaticResource Warning}" />
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding PoolKind}" Value="checking">
+                            <Setter Property="Foreground" Value="{StaticResource Blue}" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
+                </Border>
+                <TextBlock Style="{StaticResource Overline}" Text="DHCP POOL" VerticalAlignment="Center" />
+              </DockPanel>
+              <TextBlock Text="{Binding PoolSubtitle}" FontSize="12" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,4,0,0" />
+
+              <!-- Set up (pool stopped) -->
+              <StackPanel Visibility="{Binding PoolIdle, Converter={StaticResource BoolToVis}}">
+                <TextBlock Style="{StaticResource PoolLabel}" Text="Network to serve" />
+                <TextBox x:Name="PoolNetworkBox" Style="{StaticResource MonoField}" Tag="192.168.1.0/24" TextChanged="PoolNetwork_Changed"
+                         AutomationProperties.Name="Pool network" />
+                <TextBlock x:Name="PoolNetworkError" Style="{StaticResource PoolError}" />
+                <Button Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Height="30" Padding="2,0" Margin="-2,4,0,0"
+                        Foreground="{StaticResource Blue}" FontWeight="SemiBold" FontSize="12.5" Click="PoolFromAdapter_Click"
+                        Content="Use this adapter's current network" />
+
+                <ToggleButton x:Name="PoolAdvancedToggle" Style="{StaticResource Disclosure}" Content="Server address, range and lease" Margin="0,2,0,0" />
+                <Grid Visibility="{Binding IsChecked, ElementName=PoolAdvancedToggle, Converter={StaticResource BoolToVis}}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                  </Grid.RowDefinitions>
+                  <StackPanel>
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="This PC's address" />
+                    <TextBox x:Name="PoolServerBox" Style="{StaticResource MonoField}" TextChanged="PoolField_Changed" AutomationProperties.Name="Server address" />
+                    <TextBlock x:Name="PoolServerError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="Lease (minutes)" />
+                    <TextBox x:Name="PoolLeaseBox" Style="{StaticResource MonoField}" TextChanged="PoolField_Changed" AutomationProperties.Name="Lease minutes" />
+                    <TextBlock x:Name="PoolLeaseError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1">
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="Range start" />
+                    <TextBox x:Name="PoolStartBox" Style="{StaticResource MonoField}" TextChanged="PoolField_Changed" AutomationProperties.Name="Range start" />
+                    <TextBlock x:Name="PoolStartError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="2">
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="Range end" />
+                    <TextBox x:Name="PoolEndBox" Style="{StaticResource MonoField}" TextChanged="PoolField_Changed" AutomationProperties.Name="Range end" />
+                    <TextBlock x:Name="PoolEndError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2">
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="Gateway (optional)" />
+                    <TextBox x:Name="PoolGatewayBox" Style="{StaticResource MonoField}" Tag="None" TextChanged="PoolField_Changed" AutomationProperties.Name="Pool gateway" />
+                    <TextBlock x:Name="PoolGatewayError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2" Grid.Column="2">
+                    <TextBlock Style="{StaticResource PoolLabel}" Text="DNS (optional)" />
+                    <TextBox x:Name="PoolDnsBox" Style="{StaticResource MonoField}" Tag="None" TextChanged="PoolField_Changed" AutomationProperties.Name="Pool DNS" />
+                    <TextBlock x:Name="PoolDnsError" Style="{StaticResource PoolError}" />
+                  </StackPanel>
+                </Grid>
+
+                <Border Margin="0,12,0,0" CornerRadius="10" Padding="12,9" Background="{StaticResource SurfaceAlt}">
+                  <TextBlock x:Name="PoolPreview" FontSize="12" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+                </Border>
+                <Button Style="{StaticResource PrimaryButton}" Margin="0,12,0,0" HorizontalAlignment="Stretch" Click="StartPool_Click"
+                        AutomationProperties.Name="Start DHCP pool">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE768;" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0" />
+                    <TextBlock Text="Start DHCP pool" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+
+              <!-- Running -->
+              <StackPanel Visibility="{Binding PoolActive, Converter={StaticResource BoolToVis}}" Margin="0,10,0,0">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                  </Grid.RowDefinitions>
+                  <TextBlock Style="{StaticResource DetailLabel}" Text="Adapter" />
+                  <TextBlock Style="{StaticResource DetailValue}" Grid.Column="1" Text="{Binding PoolAdapterText}" FontFamily="{StaticResource UiFont}" />
+                  <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="1" Text="This PC" />
+                  <TextBlock Style="{StaticResource DetailValue}" Grid.Row="1" Grid.Column="1" Text="{Binding PoolServerText}" />
+                  <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="2" Text="Range" />
+                  <TextBlock Style="{StaticResource DetailValue}" Grid.Row="2" Grid.Column="1" Text="{Binding PoolRangeText}" />
+                  <TextBlock Style="{StaticResource DetailLabel}" Grid.Row="3" Text="Devices" />
+                  <TextBlock Style="{StaticResource DetailValue}" Grid.Row="3" Grid.Column="1" Text="{Binding DeviceCountText}" FontFamily="{StaticResource UiFont}" />
+                </Grid>
+                <DockPanel Margin="0,14,0,0">
+                  <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Stop" Width="80" Foreground="{StaticResource Danger}"
+                          Click="StopPool_Click" AutomationProperties.Name="Stop DHCP pool" />
+                  <Button Style="{StaticResource SecondaryButton}" Content="Show devices" Margin="0,0,8,0" Click="ShowDevices_Click" />
+                </DockPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
         </StackPanel>
         </ScrollViewer>
 
@@ -469,6 +721,112 @@
         </Border>
       </Grid>
 
+      <!-- ===== Devices (DHCP pool clients and reservations) ===== -->
+      <Border Grid.Row="3" Height="270" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
+              Visibility="{Binding IsChecked, ElementName=DevicesToggle, Converter={StaticResource BoolToVis}}">
+        <DockPanel Margin="22,12,22,0">
+          <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+              <Button Style="{StaticResource GhostButton}" Click="ReserveAll_Click" Height="32"
+                      ToolTip="Give every connected device a reservation at the address it has now">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE718;" FontSize="12" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Purple}" />
+                  <TextBlock Text="Reserve all" VerticalAlignment="Center" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource GhostButton}" Click="AddReservation_Click" Height="32" Margin="4,0,0,0"
+                      ToolTip="Reserve an address for a device by its MAC, before it is plugged in">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE710;" FontSize="11" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Blue}" />
+                  <TextBlock Text="Add device" VerticalAlignment="Center" FontWeight="SemiBold" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+            <TextBlock Text="Devices" FontFamily="{StaticResource DisplayFont}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding DevicesSummary}" FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="12,1,0,0" TextTrimming="CharacterEllipsis" />
+          </DockPanel>
+          <Grid DockPanel.Dock="Top" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="110" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="180" />
+              <ColumnDefinition Width="170" />
+              <ColumnDefinition Width="100" />
+              <ColumnDefinition Width="118" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource ColumnHead}" Text="STATUS" />
+            <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="1" Text="DEVICE" />
+            <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="2" Text="IP ADDRESS" />
+            <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="3" Text="MAC" />
+            <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="4" Text="LEASE" />
+          </Grid>
+          <Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+              <ItemsControl ItemsSource="{Binding Devices}" Focusable="False">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="0,7">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="110" />
+                          <ColumnDefinition Width="*" />
+                          <ColumnDefinition Width="180" />
+                          <ColumnDefinition Width="170" />
+                          <ColumnDefinition Width="100" />
+                          <ColumnDefinition Width="118" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                          <Ellipse x:Name="dot" Width="7" Height="7" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                          <TextBlock Text="{Binding StateText}" FontSize="12.5" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                          <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE718;" FontSize="11" Foreground="{StaticResource Purple}" VerticalAlignment="Center"
+                                       Margin="0,1,6,0" Visibility="{Binding IsReserved, Converter={StaticResource BoolToVis}}" ToolTip="Reserved" />
+                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Text="{Binding Detail}" FontSize="11.5" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis"
+                                     Visibility="{Binding HasDetail, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Ip}" FontFamily="{StaticResource MonoFont}" FontSize="13" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding MovingNote}" FontSize="11.5" Foreground="{StaticResource Warning}" TextWrapping="Wrap"
+                                     Visibility="{Binding HasMovingNote, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="3" Text="{Binding Mac}" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Text="{Binding TimeLeft}" FontSize="12" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                          <Button Style="{StaticResource IconButton}" Width="34" Height="34" FontSize="13" Content="&#xE774;" Click="OpenDevice_Click"
+                                  IsEnabled="{Binding CanOpen}" ToolTip="Open its web page" AutomationProperties.Name="{Binding Name, StringFormat=Open {0} in browser}" />
+                          <Button Style="{StaticResource IconButton}" Width="34" Height="34" FontSize="13" Content="&#xE9D9;" Click="PingDevice_Click"
+                                  IsEnabled="{Binding CanOpen}" ToolTip="Ping it" AutomationProperties.Name="{Binding Name, StringFormat=Ping {0}}" />
+                          <Button Style="{StaticResource IconButton}" Width="34" Height="34" FontSize="13" Content="&#xE718;" Click="AssignDevice_Click"
+                                  ToolTip="{Binding AssignLabel}" AutomationProperties.Name="{Binding Name, StringFormat=Reserve IP for {0}}" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                      <DataTrigger Binding="{Binding Kind}" Value="active">
+                        <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding Kind}" Value="offered">
+                        <Setter TargetName="dot" Property="Fill" Value="{StaticResource Teal}" />
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding Kind}" Value="waiting">
+                        <Setter TargetName="dot" Property="Fill" Value="{StaticResource Purple}" />
+                      </DataTrigger>
+                    </DataTemplate.Triggers>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <TextBlock Text="No devices yet. Start the DHCP pool and plug devices in; they appear here as they ask for an address. Use Add device to reserve an IP for a camera by its MAC before it is connected."
+                       Foreground="{StaticResource Muted}" FontSize="12.5" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,12,0,0"
+                       Visibility="{Binding NoDevices, Converter={StaticResource BoolToVis}}" />
+          </Grid>
+        </DockPanel>
+      </Border>
+
       <!-- ===== Activity log ===== -->
       <Border Grid.Row="3" Height="170" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
               Visibility="{Binding IsChecked, ElementName=LogToggle, Converter={StaticResource BoolToVis}}">
@@ -500,26 +858,10 @@
         <DockPanel Margin="22,0,12,0">
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock x:Name="BrandText" Text="cre8labs.uk" Foreground="{StaticResource Faint}" FontSize="12" VerticalAlignment="Center" Margin="0,0,14,0" />
-            <ToggleButton x:Name="LogToggle" Cursor="Hand" FocusVisualStyle="{x:Null}">
-              <ToggleButton.Template>
-                <ControlTemplate TargetType="ToggleButton">
-                  <Border x:Name="bd" CornerRadius="8" Padding="10,5" Background="Transparent">
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE81C;" FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0" Foreground="{StaticResource Muted}" />
-                      <TextBlock Text="Activity" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Border>
-                  <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                      <Setter TargetName="bd" Property="Background" Value="{StaticResource Hover}" />
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="True">
-                      <Setter TargetName="bd" Property="Background" Value="{StaticResource TealSoft}" />
-                    </Trigger>
-                  </ControlTemplate.Triggers>
-                </ControlTemplate>
-              </ToggleButton.Template>
-            </ToggleButton>
+            <ToggleButton x:Name="DevicesToggle" Style="{StaticResource FooterToggle}" Tag="&#xE968;" Content="{Binding DevicesButtonText}"
+                          Margin="0,0,4,0" Checked="DevicesToggle_Checked" AutomationProperties.Name="Devices" />
+            <ToggleButton x:Name="LogToggle" Style="{StaticResource FooterToggle}" Tag="&#xE81C;" Content="Activity"
+                          Checked="LogToggle_Checked" AutomationProperties.Name="Activity" />
           </StackPanel>
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
             <Ellipse x:Name="FooterDot" Width="7" Height="7" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,9,0" />

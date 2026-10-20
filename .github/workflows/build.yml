@@ -37,6 +37,13 @@ jobs:
             choco install innosetup -y --no-progress
           }
 
+      - name: Run tests
+        shell: pwsh
+        run: |
+          dotnet build tests -c Release -o test-build
+          ./test-build/IPSwitcher.Tests.exe
+          if ($LASTEXITCODE -ne 0) { throw "Tests failed" }
+
       - name: Build app and installer
         shell: pwsh
         run: ./build.ps1 -Version ${{ steps.version.outputs.value }}

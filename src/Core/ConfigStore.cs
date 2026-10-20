@@ -62,6 +62,9 @@ namespace Cre8Labs.IPSwitcher.Core
         [DataMember(Order = 2)] public List<Preset> Presets { get; set; } = new List<Preset>();
         [DataMember(Order = 3)] public ShortcutSettings Shortcuts { get; set; } = new ShortcutSettings();
 
+        /// <summary>The last DHCP pool settings, including camera reservations.</summary>
+        [DataMember(Order = 4)] public Dhcp.PoolSettings Pool { get; set; } = new Dhcp.PoolSettings();
+
         /// <summary>
         /// Fills gaps from older or hand-edited files. Presets that never had a shortcut get
         /// 1 to 9 by position, skipping keys already in use; an empty string means "none" and is kept.
@@ -72,6 +75,9 @@ namespace Cre8Labs.IPSwitcher.Core
             Presets = Presets ?? new List<Preset>();
             Presets.RemoveAll(p => p == null);
             Shortcuts = Shortcuts ?? new ShortcutSettings();
+            Pool = Pool ?? new Dhcp.PoolSettings();
+            Pool.Reservations = Pool.Reservations ?? new List<Dhcp.Reservation>();
+            Pool.Reservations.RemoveAll(r => r == null);
             Shortcuts.Dhcp = Shortcuts.Dhcp ?? ShortcutSettings.DefaultDhcp;
             Shortcuts.NewPreset = Shortcuts.NewPreset ?? ShortcutSettings.DefaultNewPreset;
             Shortcuts.Refresh = Shortcuts.Refresh ?? ShortcutSettings.DefaultRefresh;

@@ -53,8 +53,14 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]
+; Allow inbound DHCP (UDP 67 and 68) for this program only, so the DHCP pool can hear devices.
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs IP Switcher DHCP"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Cre8Labs IP Switcher DHCP"" dir=in action=allow protocol=UDP localport=67,68 profile=any program=""{app}\{#AppExe}"""; Flags: runhidden
 ; Setup is already elevated, so launching as the current (admin) user avoids a second UAC prompt.
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runascurrentuser
+
+[UninstallRun]
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs IP Switcher DHCP"""; Flags: runhidden; RunOnceId: "RemoveDhcpFirewallRule"
 
 [Code]
 // The app targets .NET Framework 4.8, built into Windows 10 1903+ and Windows 11.

@@ -89,6 +89,7 @@ namespace Cre8Labs.IPSwitcher
             _pollTimer.Tick += async (s, e) =>
             {
                 if (WindowState != WindowState.Minimized && !_busy) await RefreshStatusAsync();
+                await CheckPoolAdapterAsync();
             };
 
             // Windows fires address-change events in bursts, so wait for it to settle.
@@ -110,9 +111,22 @@ namespace Cre8Labs.IPSwitcher
             Closing += (s, e) =>
             {
                 // Closing mid-apply could leave the address changed but DNS not, so wait for it.
-                if (!_busy) return;
-                e.Cancel = true;
-                Notify("info", "Still applying settings. Close again in a moment.");
+                if (_busy)
+                {
+                    e.Cancel = true;
+                    Notify("info", "Still applying settings. Close again in a moment.");
+                    return;
+                }
+                if (_pool != null)
+                {
+                    // Stop serving and put the adapter back before closing.
+                    e.Cancel = true;
+                    Dispatcher.BeginInvoke(new Action(async () =>
+                    {
+                        await StopPoolAsync(restore: true, message: null);
+                        Close();
+                    }));
+                }
             };
             SourceInitialized += (s, e) =>
             {
@@ -132,6 +146,7 @@ namespace Cre8Labs.IPSwitcher
         {
             BrandText.Text = $"v{Assembly.GetEntryAssembly().GetName().Version.ToString(3)}   cre8labs.uk";
             RebuildPresets();
+            LoadPoolForm();
             if (!System.IO.File.Exists(_store.FilePath)) SaveConfig();
             AddLog("info", NetworkService.DemoMode
                 ? "Demo mode: sample adapters and presets. Nothing is changed or saved."
@@ -222,6 +237,8 @@ namespace Cre8Labs.IPSwitcher
             if (_suppressSelection) return;
             _config.Adapter = SelectedAdapterName ?? "";
             SaveConfig();
+            RaisePool();
+            UpdatePoolPreview();
             await RefreshStatusAsync();
         }
 
@@ -296,6 +313,9 @@ namespace Cre8Labs.IPSwitcher
                 return;
             }
 
+            if (_pool != null && alias == _poolAdapter)
+                await StopPoolAsync(false, $"DHCP pool stopped because {alias} is switching to {item.Name}.");
+
             var addOnly = AddExtraSwitch.IsChecked == true;
             var preset = item.Model.Clone();
             var result = await RunBusyAsync(item, () => addOnly ? NetworkService.AddAddress(alias, preset) : NetworkService.ApplyStatic(alias, preset));
@@ -312,6 +332,8 @@ namespace Cre8Labs.IPSwitcher
         async Task ApplyDhcpAsync()
         {
             if (!CanChangeSettings(out var alias)) return;
+            if (_pool != null && alias == _poolAdapter)
+                await StopPoolAsync(false, $"DHCP pool stopped because {alias} is switching to DHCP.");
             var result = await RunBusyAsync(DhcpItem, () => NetworkService.SetDhcp(alias));
 
             if (result.Ok) Notify("ok", $"{alias} is on DHCP. The router may take a few seconds to answer.");

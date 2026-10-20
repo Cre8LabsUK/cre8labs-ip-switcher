@@ -31,4 +31,8 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="IPSwitcher.Tests" />
+  </ItemGroup>
+
 </Project>

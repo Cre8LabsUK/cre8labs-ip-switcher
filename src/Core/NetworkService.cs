@@ -75,6 +75,35 @@ namespace Cre8Labs.IPSwitcher.Core
             return n.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ? 1 : 0;
         }
 
+        /// <summary>0 = wired, 1 = Wi-Fi, 2 = virtual, VPN or unknown.</summary>
+        public static int AdapterRank(string name)
+        {
+            if (DemoMode) return name.StartsWith("Wi", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+            var ni = Usable().FirstOrDefault(n => n.Name == name);
+            return ni == null ? 2 : Rank(ni);
+        }
+
+        const string FirewallRuleName = "Cre8Labs IP Switcher DHCP";
+
+        /// <summary>
+        /// Windows Firewall blocks inbound DHCP by default. Adds (or repairs) an allow rule for UDP 67 and 68,
+        /// limited to this program. The installer creates the same rule; this covers the portable exe.
+        /// </summary>
+        public static OpResult EnsureDhcpFirewallRule()
+        {
+            if (DemoMode) return OpResult.Success();
+            var exe = Process.GetCurrentProcess().MainModule.FileName;
+            var show = Netsh($"advfirewall firewall show rule name=\"{FirewallRuleName}\" verbose");
+            if (show.Code == 0 && show.Output.IndexOf(exe, StringComparison.OrdinalIgnoreCase) >= 0) return OpResult.Success();
+            if (show.Code == 0) Netsh($"advfirewall firewall delete rule name=\"{FirewallRuleName}\""); // points at an old copy of the exe
+
+            var add = Netsh($"advfirewall firewall add rule name=\"{FirewallRuleName}\" dir=in action=allow protocol=UDP " +
+                            $"localport=67,68 profile=any program=\"{exe}\"");
+            return add.Code == 0
+                ? OpResult.Success()
+                : OpResult.Fail("Could not add the Windows Firewall rule for DHCP. " + add.Output);
+        }
+
         public static List<AdapterInfo> ListAdapters() =>
             DemoMode ? DemoData.ListAdapters() : Usable()
                 .OrderBy(Rank)
