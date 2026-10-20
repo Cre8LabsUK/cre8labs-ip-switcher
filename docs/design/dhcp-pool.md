@@ -125,3 +125,35 @@ The last pool settings are stored in `presets.json` under `"Pool"` (network, mas
 3. **Default lease time:** short (10 minutes) keeps the table fresh while devices are swapped. Longer suits a device that stays plugged in.
 4. **Vendor list size:** a curated list of common security and network vendors (about 50 KB), or the full IEEE OUI list (about 1 MB in the exe)?
 5. **Reservations:** do you need "this MAC always gets this IP" in v1, for example for repeat site visits?
+
+## Phase 1 findings (2026-10-20, Windows 11 24H2 dev laptop)
+
+Checked without sending any traffic: each address was bound and released, and the firewall was read.
+
+| Check | Result | Conclusion |
+|---|---|---|
+| Bind `0.0.0.0:67` | Refused (`AddressAlreadyInUse`): Internet Connection Sharing for the Hyper-V Default Switch holds `172.27.80.1:67` exclusively | Binding the wildcard address is not viable on PCs with Hyper-V or ICS. Binding the server's own address is required, not just preferred. |
+| Bind a specific adapter address to port 67 | Works alongside ICS | The chosen design coexists with Windows' own DHCP service. |
+| Bind the address ICS already owns | `AddressAlreadyInUse` | Maps to the "another program is already serving DHCP" stop path. |
+| Bind a static address on an unplugged adapter | `AddressNotAvailable` | Confirms the need for the Waiting for cable state, which retries every 2 seconds. |
+| UDP 68 owners | Only ICS, on its own address | The rogue server probe can bind the server address on port 68. |
+| Windows Firewall | Off on this machine; app rule absent | The installer and the app both add the rule for machines where it is on. |
+| Loopback socket test (CI) | Passes | Receive, engine and send path work end to end. |
+
+**Still to confirm on a bench** (needs the admin build and real hardware):
+
+1. A socket bound to the server address receives DISCOVER broadcasts arriving on that adapter.
+2. Replies sent to 255.255.255.255 leave through that adapter only.
+3. A real camera completes DISCOVER, OFFER, REQUEST and ACK, and renews.
+4. A reserved camera moves to its reserved address after a renewal or restart.
+5. Starting on a network that already has a DHCP server (for example an office switch) is caught by the probe.
+
+### Bench test steps
+
+1. Install the latest Setup build and open IP Switcher. Accept the admin prompt.
+2. Plug the laptop's Ethernet into a camera, or a switch with cameras. Cameras must have DHCP turned on; many ship with a fixed IP and DHCP off.
+3. Select the Ethernet adapter. Under DHCP pool, enter a network such as `192.168.1.0/24` and click **Start DHCP pool**.
+4. Within a minute, devices should appear under **Devices**. Click the globe icon to open a camera's web page.
+5. Reserve one camera at a new address, then restart it, and check it comes back on that address.
+6. Click **Stop pool** and check the adapter returns to its previous settings.
+7. If nothing appears after two minutes, open **Activity** and copy the lines starting with `DHCP:` into an issue.

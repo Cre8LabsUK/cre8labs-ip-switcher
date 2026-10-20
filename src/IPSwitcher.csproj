@@ -18,7 +18,7 @@
     <AssemblyTitle>Cre8Labs IP Switcher</AssemblyTitle>
     <Description>One-click IP presets for Windows network adapters</Description>
     <Copyright>Copyright (c) 2026 Cre8Labs</Copyright>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
   </PropertyGroup>
 
