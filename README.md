@@ -31,7 +31,7 @@ Changing a static IP in Windows means five dialogs deep in Control Panel, every 
 - **Live adapter status**: address, DHCP or static, link speed, gateway, DNS and MAC, updated automatically
 - **Works with the cable unplugged**: set the IP first, then plug in. Saved settings are shown until the link comes up
 - **Add as extra IP**: add a preset's address alongside the current one, handy for reaching a device on a second subnet
-- **Quick ping** to the gateway or any address
+- **Quick ping** to the gateway or any address, always sent from the selected adapter (even when Wi-Fi or a VPN is on the same subnet)
 - **Active preset highlight**, so you always know which network you are on
 - **Smart defaults**: wired Ethernet is picked before Wi-Fi, VPN and virtual adapters
 - **Preset editor** with live subnet info and warnings, for example when the gateway is outside the subnet

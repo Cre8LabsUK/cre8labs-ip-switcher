@@ -302,6 +302,7 @@
           <Border Style="{StaticResource Card}" Margin="0,16,0,0">
             <StackPanel>
               <TextBlock Style="{StaticResource Overline}" Text="QUICK PING" />
+              <TextBlock Text="{Binding PingSource}" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
               <DockPanel Margin="0,10,0,0">
                 <Button x:Name="PingButton" DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Ping" Margin="8,0,0,0" Width="76" Click="Ping_Click" />
                 <TextBox x:Name="PingBox" Style="{StaticResource MonoField}" Tag="Gateway or address" KeyDown="PingBox_KeyDown" />

@@ -49,8 +49,18 @@ namespace Cre8Labs.IPSwitcher
         public StatusView Status
         {
             get => _status;
-            private set { _status = value; Raise(); }
+            private set
+            {
+                _status = value;
+                Raise();
+                Raise(nameof(PingSource));
+            }
         }
+
+        public string PingSource =>
+            Status.IsUp && IpTools.IsIPv4(Status.FirstIp)
+                ? $"Sent from {SelectedAdapterName} ({Status.FirstIp})"
+                : "Selected adapter has no live address";
 
         string SelectedAdapterName => (AdapterCombo.SelectedItem as AdapterInfo)?.Name;
 
@@ -439,55 +449,44 @@ namespace Cre8Labs.IPSwitcher
                 return;
             }
 
+            // Ping from the selected adapter's own address so it cannot leave through Wi-Fi or a VPN instead.
+            var adapter = SelectedAdapterName;
+            if (adapter == null || !Status.IsUp || !IpTools.IsIPv4(Status.FirstIp))
+            {
+                Notify("error", $"{adapter ?? "No adapter"} has no live address to ping from. Connect it or apply a preset first.");
+                return;
+            }
+            var source = System.Net.IPAddress.Parse(Status.FirstIp);
+
             PingButton.IsEnabled = false;
             PingResults.Clear();
             var replies = 0;
             try
             {
-            using (var ping = new Ping())
-            {
+                System.Net.IPAddress destination;
+                try { destination = await Task.Run(() => PingService.Resolve(target)); }
+                catch (Exception ex) when (ex is System.Net.Sockets.SocketException || ex is ArgumentException)
+                {
+                    PingResults.Add(new PingResult { Ok = false, Text = $"{target}: {ex.Message}" });
+                    return;
+                }
+
                 for (var i = 0; i < 4; i++)
                 {
-                    try
+                    var reply = await Task.Run(() => PingService.Send(source, destination, 1000));
+                    if (reply.Ok) replies++;
+                    PingResults.Add(new PingResult
                     {
-                        var reply = await ping.SendPingAsync(target, 1000);
-                        var ok = reply.Status == IPStatus.Success;
-                        if (ok) replies++;
-                        PingResults.Add(new PingResult
-                        {
-                            Ok = ok,
-                            Text = ok ? $"{reply.Address}  {reply.RoundtripTime} ms" : $"{target}  {Friendly(reply.Status)}",
-                        });
-                    }
-                    catch (PingException ex)
-                    {
-                        PingResults.Add(new PingResult { Ok = false, Text = ex.InnerException?.Message ?? ex.Message });
-                        break;
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        PingResults.Add(new PingResult { Ok = false, Text = ex.Message });
-                        break;
-                    }
+                        Ok = reply.Ok,
+                        Text = reply.Ok ? $"{reply.From}  {reply.RoundTripMs} ms" : $"{destination}  {reply.Error}",
+                    });
                     if (i < 3) await Task.Delay(300);
                 }
-            }
-            AddLog(replies > 0 ? "ok" : "error", $"Ping {target}: {replies} of 4 replies");
+                AddLog(replies > 0 ? "ok" : "error", $"Ping {target} from {adapter} ({source}): {replies} of 4 replies");
             }
             finally
             {
                 PingButton.IsEnabled = true;
-            }
-        }
-
-        static string Friendly(IPStatus status)
-        {
-            switch (status)
-            {
-                case IPStatus.TimedOut: return "timed out";
-                case IPStatus.DestinationHostUnreachable: return "host unreachable";
-                case IPStatus.DestinationNetworkUnreachable: return "network unreachable";
-                default: return status.ToString();
             }
         }
 

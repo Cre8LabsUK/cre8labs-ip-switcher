@@ -11,6 +11,6 @@ All notable changes to this project are listed here. The format follows [Keep a 
 - Live adapter status, including saved settings while the cable is unplugged
 - Add as extra IP mode
 - Preset editor with live subnet info and validation
-- Quick ping, activity log, and undo for deleted presets
+- Quick ping bound to the selected adapter's address, activity log, and undo for deleted presets
 - Portable mode (`presets.json` next to the exe)
 - Installer with Start Menu and optional desktop shortcuts
