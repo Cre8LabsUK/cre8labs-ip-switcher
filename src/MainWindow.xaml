@@ -295,6 +295,10 @@
                          Checked="Nav_Checked" AutomationProperties.Name="DHCP pool page" ToolTip="Hand out addresses to devices" />
             <RadioButton x:Name="NavScan" Style="{StaticResource NavItem}" Tag="&#xE721;" Content="Scan"
                          Checked="Nav_Checked" AutomationProperties.Name="Scan page" ToolTip="Find devices on the network" />
+            <RadioButton x:Name="NavMonitor" Style="{StaticResource NavItem}" Tag="&#xE9D9;" Content="Monitor"
+                         Checked="Nav_Checked" AutomationProperties.Name="Monitor page" ToolTip="Watch many devices at once" />
+            <RadioButton x:Name="NavTools" Style="{StaticResource NavItem}" Tag="&#xE90F;" Content="Tools"
+                         Checked="Nav_Checked" AutomationProperties.Name="Tools page" ToolTip="Port check, RTSP, traceroute, DNS, link health" />
           </StackPanel>
         </Border>
       <Grid Grid.Column="1" Margin="22,18,22,12">
@@ -780,13 +784,13 @@
           </Grid.RowDefinitions>
           <DockPanel Margin="0,0,0,14">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-              <Button Style="{StaticResource GhostButton}" Click="ReserveAll_Click" ToolTip="Give every connected device a reservation at the address it has now">
+              <Button Style="{StaticResource GhostButton}" Click="ReserveAll_Click" AutomationProperties.Name="Reserve all" ToolTip="Give every connected device a reservation at the address it has now">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE718;" FontSize="12" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Purple}" />
                   <TextBlock Text="Reserve all" VerticalAlignment="Center" FontWeight="SemiBold" />
                 </StackPanel>
               </Button>
-              <Button Style="{StaticResource GhostButton}" Click="AddReservation_Click" Margin="4,0,0,0"
+              <Button Style="{StaticResource GhostButton}" Click="AddReservation_Click" Margin="4,0,0,0" AutomationProperties.Name="Add device"
                       ToolTip="Reserve an address for a device by its MAC, before it is plugged in">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE710;" FontSize="11" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Blue}" />
@@ -1002,6 +1006,268 @@
             </DockPanel>
           </Border>
         </Grid>
+
+        <!-- ===== Monitor page ===== -->
+        <Grid x:Name="MonitorPage" Grid.Row="1" Grid.Column="2" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <DockPanel Margin="0,0,0,14">
+            <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Width="130" Click="MonitorToggle_Click" VerticalAlignment="Center"
+                    AutomationProperties.Name="Start or stop monitoring">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="{Binding MonitorButtonIcon}" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0" />
+                <TextBlock Text="{Binding MonitorButtonText}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Monitor" FontFamily="{StaticResource DisplayFont}" FontSize="22" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding MonitorSummary}" FontSize="12.5" Foreground="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+          </DockPanel>
+          <DockPanel Grid.Row="1" Margin="0,0,0,14">
+            <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Click="MonitorFromPool_Click" Margin="4,0,0,0" AutomationProperties.Name="Add pool devices"
+                    ToolTip="Add every device with an address from the DHCP pool">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE968;" FontSize="12" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Blue}" />
+                <TextBlock Text="Add pool devices" VerticalAlignment="Center" FontWeight="SemiBold" />
+              </StackPanel>
+            </Button>
+            <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Click="MonitorFromScan_Click" Margin="4,0,0,0" AutomationProperties.Name="Add scan results"
+                    ToolTip="Add every device from the last scan">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE721;" FontSize="12" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Blue}" />
+                <TextBlock Text="Add scan results" VerticalAlignment="Center" FontWeight="SemiBold" />
+              </StackPanel>
+            </Button>
+            <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Add" Width="70" Margin="8,0,0,0" Click="MonitorAdd_Click" AutomationProperties.Name="Add device to monitor" />
+            <TextBox x:Name="MonitorAddBox" Style="{StaticResource MonoField}" Tag="IP address, or Name=IP" KeyDown="MonitorAdd_KeyDown"
+                     AutomationProperties.Name="Device to monitor" />
+          </DockPanel>
+          <Border Grid.Row="2" Style="{StaticResource Card}" Padding="18,14,10,8">
+            <DockPanel>
+              <Grid DockPanel.Dock="Top" Margin="0,0,8,6">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="86" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="166" />
+                  <ColumnDefinition Width="104" />
+                  <ColumnDefinition Width="56" />
+                  <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource ColumnHead}" Text="STATUS" />
+                <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="1" Text="DEVICE" />
+                <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="2" Text="LAST 60 SECONDS" />
+                <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="3" Text="LATENCY" />
+                <TextBlock Style="{StaticResource ColumnHead}" Grid.Column="4" Text="LOSS" />
+              </Grid>
+              <Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                  <ItemsControl ItemsSource="{Binding MonitorItems}" Focusable="False" Margin="0,0,8,0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="0,7">
+                          <Grid>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="86" />
+                              <ColumnDefinition Width="*" />
+                              <ColumnDefinition Width="166" />
+                              <ColumnDefinition Width="104" />
+                              <ColumnDefinition Width="56" />
+                              <ColumnDefinition Width="40" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                              <Ellipse x:Name="dot" Width="8" Height="8" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                              <TextBlock x:Name="state" Text="{Binding StateText}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                              <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                              <TextBlock Text="{Binding Ip}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" Foreground="{StaticResource Muted}" />
+                            </StackPanel>
+                            <Border Grid.Column="2" Width="150" Height="26" HorizontalAlignment="Left" Background="{StaticResource SurfaceAlt}" CornerRadius="4">
+                              <Grid>
+                                <Polyline Points="{Binding SparkPoints}" Stroke="{StaticResource Teal}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                <Path Data="{Binding LossMarks}" Stroke="{StaticResource Danger}" StrokeThickness="2" />
+                              </Grid>
+                            </Border>
+                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding LastText}" FontFamily="{StaticResource MonoFont}" FontSize="12.5" FontWeight="SemiBold" />
+                              <TextBlock Text="{Binding AvgText}" FontSize="11.5" Foreground="{StaticResource Muted}" />
+                            </StackPanel>
+                            <TextBlock x:Name="loss" Grid.Column="4" Text="{Binding LossText}" FontFamily="{StaticResource MonoFont}" FontSize="12.5"
+                                       Foreground="{StaticResource Muted}" VerticalAlignment="Center" />
+                            <Button Grid.Column="5" Style="{StaticResource IconButton}" Width="32" Height="32" FontSize="11" Content="&#xE711;"
+                                    HorizontalAlignment="Right" Click="MonitorRemove_Click" ToolTip="Stop watching"
+                                    AutomationProperties.Name="{Binding Name, StringFormat=Stop watching {0}}" />
+                          </Grid>
+                        </Border>
+                        <DataTemplate.Triggers>
+                          <DataTrigger Binding="{Binding Kind}" Value="up">
+                            <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                            <Setter TargetName="state" Property="Foreground" Value="{StaticResource Success}" />
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding Kind}" Value="slow">
+                            <Setter TargetName="dot" Property="Fill" Value="{StaticResource Warning}" />
+                            <Setter TargetName="state" Property="Foreground" Value="{StaticResource Warning}" />
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding Kind}" Value="down">
+                            <Setter TargetName="dot" Property="Fill" Value="{StaticResource Danger}" />
+                            <Setter TargetName="state" Property="Foreground" Value="{StaticResource Danger}" />
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding HasLoss}" Value="True">
+                            <Setter TargetName="loss" Property="Foreground" Value="{StaticResource Danger}" />
+                          </DataTrigger>
+                        </DataTemplate.Triggers>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+                <TextBlock Text="Nothing to watch yet. Type an IP above, or add everything from your last scan or the DHCP pool."
+                           Foreground="{StaticResource Muted}" FontSize="12.5" TextWrapping="Wrap" Margin="0,12,8,0"
+                           Visibility="{Binding NoMonitorItems, Converter={StaticResource BoolToVis}}" />
+              </Grid>
+            </DockPanel>
+          </Border>
+        </Grid>
+
+        <!-- ===== Tools page ===== -->
+        <ScrollViewer x:Name="ToolsPage" Grid.Row="1" Grid.Column="2" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" Focusable="False"
+                      Margin="-12,-12,-12,0" Padding="12,12,12,0">
+          <StackPanel>
+            <StackPanel Margin="0,0,0,14">
+              <TextBlock Text="Tools" FontFamily="{StaticResource DisplayFont}" FontSize="22" FontWeight="SemiBold" />
+              <TextBlock Text="Checks that run from the selected adapter, so they test the network you are plugged into."
+                         FontSize="12.5" Foreground="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Port check -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+              <StackPanel>
+                <TextBlock Style="{StaticResource Overline}" Text="PORT CHECK" />
+                <DockPanel Margin="0,10,0,0">
+                  <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Check" Width="90" Margin="8,0,0,0" Click="PortCheck_Click" AutomationProperties.Name="Check ports" />
+                  <TextBox x:Name="PortHostBox" DockPanel.Dock="Left" Style="{StaticResource MonoField}" Width="170" Tag="Device IP" AutomationProperties.Name="Port check device" />
+                  <TextBox x:Name="PortListBox" Style="{StaticResource MonoField}" Margin="8,0,0,0" Text="80, 443, 554, 8000, 37777, 22, 23, 3389"
+                           AutomationProperties.Name="Ports to check" ToolTip="Ports or ranges, such as 80, 443, 8000-8010" />
+                </DockPanel>
+                <ItemsControl ItemsSource="{Binding PortChips}" Margin="0,10,0,0" Focusable="False">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border x:Name="chip" CornerRadius="11" Padding="10,3" Margin="0,0,6,6" Background="{StaticResource SurfaceAlt}"
+                              BorderBrush="{StaticResource Line}" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                          <Ellipse x:Name="dot" Width="6" Height="6" Fill="{StaticResource Faint}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                          <TextBlock x:Name="label" Text="{Binding Text}" FontSize="12" Foreground="{StaticResource Muted}" />
+                        </StackPanel>
+                      </Border>
+                      <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Open}" Value="True">
+                          <Setter TargetName="chip" Property="Background" Value="{StaticResource SuccessSoft}" />
+                          <Setter TargetName="chip" Property="BorderBrush" Value="{StaticResource SuccessSoft}" />
+                          <Setter TargetName="dot" Property="Fill" Value="{StaticResource Success}" />
+                          <Setter TargetName="label" Property="Foreground" Value="{StaticResource Success}" />
+                          <Setter TargetName="label" Property="FontWeight" Value="SemiBold" />
+                        </DataTrigger>
+                      </DataTemplate.Triggers>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding PortSummary}" FontSize="12" Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <!-- RTSP -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+              <StackPanel>
+                <TextBlock Style="{StaticResource Overline}" Text="RTSP STREAM CHECK" />
+                <TextBlock Text="Asks the camera to describe its stream, without playing it. Proves video is being served." FontSize="12"
+                           Foreground="{StaticResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                <TextBox x:Name="RtspUrlBox" Style="{StaticResource MonoField}" Margin="0,10,0,0" Tag="rtsp://192.168.1.20:554/Streaming/Channels/101"
+                         AutomationProperties.Name="RTSP address" />
+                <DockPanel Margin="0,8,0,0">
+                  <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Check" Width="90" Margin="8,0,0,0" Click="RtspCheck_Click" AutomationProperties.Name="Check RTSP stream" />
+                  <TextBox x:Name="RtspUserBox" DockPanel.Dock="Left" Style="{StaticResource Field}" Width="170" Tag="Username (optional)" AutomationProperties.Name="Camera username" />
+                  <Grid Margin="8,0,0,0">
+                    <PasswordBox x:Name="RtspPasswordBox" Style="{StaticResource PasswordField}" AutomationProperties.Name="Camera password"
+                                 ToolTip="Only sent to the camera. Never saved." PasswordChanged="RtspPassword_Changed" />
+                    <TextBlock x:Name="RtspPasswordHint" Text="Password (optional)" Foreground="{StaticResource Faint}" FontSize="13.5"
+                               VerticalAlignment="Center" Margin="12,0,0,0" IsHitTestVisible="False" />
+                  </Grid>
+                </DockPanel>
+                <TextBlock Text="{Binding RtspSummary}" FontSize="12.5" Margin="0,10,0,0" TextWrapping="Wrap" FontWeight="SemiBold" />
+              </StackPanel>
+            </Border>
+
+            <!-- Traceroute -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+              <StackPanel>
+                <TextBlock Style="{StaticResource Overline}" Text="TRACEROUTE" />
+                <DockPanel Margin="0,10,0,0">
+                  <Button x:Name="TraceButton" DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="{Binding TraceButtonText}" Width="90"
+                          Margin="8,0,0,0" Click="Trace_Click" AutomationProperties.Name="Start or stop traceroute" />
+                  <TextBox x:Name="TraceTargetBox" Style="{StaticResource MonoField}" Tag="Address or name, e.g. 8.8.8.8" AutomationProperties.Name="Traceroute target" />
+                </DockPanel>
+                <ItemsControl ItemsSource="{Binding TraceHops}" Margin="0,10,0,0" Focusable="False">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="0,2">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="30" />
+                          <ColumnDefinition Width="140" />
+                          <ColumnDefinition Width="90" />
+                          <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Hop}" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource Faint}" />
+                        <TextBlock x:Name="addr" Grid.Column="1" Text="{Binding Address}" FontFamily="{StaticResource MonoFont}" FontSize="12.5" />
+                        <TextBlock Grid.Column="2" Text="{Binding Time}" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource Muted}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Name}" FontSize="12" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" />
+                      </Grid>
+                      <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Reached}" Value="True">
+                          <Setter TargetName="addr" Property="Foreground" Value="{StaticResource Success}" />
+                          <Setter TargetName="addr" Property="FontWeight" Value="SemiBold" />
+                        </DataTrigger>
+                      </DataTemplate.Triggers>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- DNS -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+              <StackPanel>
+                <TextBlock Style="{StaticResource Overline}" Text="DNS LOOKUP" />
+                <DockPanel Margin="0,10,0,0">
+                  <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Look up" Width="90" Margin="8,0,0,0" Click="DnsLookup_Click" AutomationProperties.Name="Look up DNS" />
+                  <TextBox x:Name="DnsServerBox" DockPanel.Dock="Right" Style="{StaticResource MonoField}" Width="150" Margin="8,0,0,0" Tag="Server (optional)"
+                           AutomationProperties.Name="DNS server" ToolTip="Leave empty to use Windows' DNS, or enter a server such as the one a camera uses" />
+                  <TextBox x:Name="DnsNameBox" Style="{StaticResource MonoField}" Tag="Name or IP, e.g. nvr.site.local" AutomationProperties.Name="Name to look up" />
+                </DockPanel>
+                <TextBlock Text="{Binding DnsResult}" FontFamily="{StaticResource MonoFont}" FontSize="12.5" Margin="0,10,0,0" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <!-- Link health -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+              <StackPanel>
+                <DockPanel>
+                  <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="Refresh" Height="34" Click="LinkRefresh_Click" AutomationProperties.Name="Refresh link health" />
+                  <TextBlock Style="{StaticResource Overline}" Text="LINK HEALTH" VerticalAlignment="Center" />
+                </DockPanel>
+                <TextBlock Text="{Binding LinkReport}" FontFamily="{StaticResource MonoFont}" FontSize="12.5" Margin="0,10,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding LinkAdvice}" FontSize="12" Foreground="{StaticResource Warning}" Margin="0,6,0,0" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
 
         <!-- Toast -->
         <Border x:Name="Toast" Grid.RowSpan="2" Grid.ColumnSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"

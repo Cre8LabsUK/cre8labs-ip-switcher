@@ -44,11 +44,13 @@ namespace Cre8Labs.NetTools
 
         void Nav_Checked(object sender, RoutedEventArgs e)
         {
-            if (AdapterPage == null || PoolPage == null || ScanPage == null) return; // still loading
-            var page = sender == NavPool ? "pool" : sender == NavScan ? "scan" : "adapter";
+            if (AdapterPage == null || PoolPage == null || ScanPage == null || MonitorPage == null || ToolsPage == null) return; // still loading
+            var page = sender == NavPool ? "pool" : sender == NavScan ? "scan" : sender == NavMonitor ? "monitor" : sender == NavTools ? "tools" : "adapter";
             AdapterPage.Visibility = page == "adapter" ? Visibility.Visible : Visibility.Collapsed;
             PoolPage.Visibility = page == "pool" ? Visibility.Visible : Visibility.Collapsed;
             ScanPage.Visibility = page == "scan" ? Visibility.Visible : Visibility.Collapsed;
+            MonitorPage.Visibility = page == "monitor" ? Visibility.Visible : Visibility.Collapsed;
+            ToolsPage.Visibility = page == "tools" ? Visibility.Visible : Visibility.Collapsed;
             PoolCard.Visibility = page == "pool" ? Visibility.Visible : Visibility.Collapsed;
             // Keep the pool setup in view: the adapter card shrinks to the essentials on the DHCP pool page.
             AdapterExtra.Visibility = page == "pool" ? Visibility.Collapsed : Visibility.Visible;
@@ -58,7 +60,7 @@ namespace Cre8Labs.NetTools
 
         void Navigate(string page)
         {
-            var target = page == "pool" ? NavPool : page == "scan" ? NavScan : NavAdapter;
+            var target = page == "pool" ? NavPool : page == "scan" ? NavScan : page == "monitor" ? NavMonitor : page == "tools" ? NavTools : NavAdapter;
             target.IsChecked = true;
             target.Focus();
         }

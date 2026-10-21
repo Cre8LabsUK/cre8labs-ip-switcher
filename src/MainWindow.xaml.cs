@@ -147,6 +147,7 @@ namespace Cre8Labs.NetTools
             BrandText.Text = $"v{Assembly.GetEntryAssembly().GetName().Version.ToString(3)}   cre8labs.uk";
             RebuildPresets();
             LoadPoolForm();
+            LoadMonitorTargets();
             if (!System.IO.File.Exists(_store.FilePath)) SaveConfig();
             AddLog("info", NetworkService.DemoMode
                 ? "Demo mode: sample adapters and presets. Nothing is changed or saved."
@@ -599,6 +600,8 @@ namespace Cre8Labs.NetTools
                 Bind(s.NavAdapter, "Adapter page", () => { Navigate("adapter"); return Task.CompletedTask; }, needsWindow: true);
                 Bind(s.NavPool, "DHCP pool page", () => { Navigate("pool"); return Task.CompletedTask; }, needsWindow: true);
                 Bind(s.NavScan, "Scan page", () => { Navigate("scan"); return Task.CompletedTask; }, needsWindow: true);
+                Bind(s.NavMonitor, "Monitor page", () => { Navigate("monitor"); return Task.CompletedTask; }, needsWindow: true);
+                Bind(s.NavTools, "Tools page", () => { Navigate("tools"); return Task.CompletedTask; }, needsWindow: true);
                 foreach (var item in Presets)
                 {
                     var target = item;
@@ -639,6 +642,8 @@ namespace Cre8Labs.NetTools
             if (Shortcut.Parse(s.NavAdapter).Equals(shortcut)) return "Adapter page";
             if (Shortcut.Parse(s.NavPool).Equals(shortcut)) return "DHCP pool page";
             if (Shortcut.Parse(s.NavScan).Equals(shortcut)) return "Scan page";
+            if (Shortcut.Parse(s.NavMonitor).Equals(shortcut)) return "Monitor page";
+            if (Shortcut.Parse(s.NavTools).Equals(shortcut)) return "Tools page";
             var preset = _config.Presets.FirstOrDefault(p => p != exclude && Shortcut.Parse(p.Hotkey).Equals(shortcut));
             return preset == null ? null : $"\u201C{preset.Name}\u201D";
         }

@@ -13,6 +13,9 @@ namespace Cre8Labs.NetTools.Core
         public long RoundTripMs { get; set; }
         public string From { get; set; }
         public string Error { get; set; }
+
+        /// <summary>A router along the way answered because the TTL ran out (used by traceroute). <see cref="From"/> is that router.</summary>
+        public bool TtlExpired { get; set; }
     }
 
     /// <summary>
@@ -43,40 +46,44 @@ namespace Cre8Labs.NetTools.Core
 
         static uint ToNetworkOrder(IPAddress ip) => BitConverter.ToUInt32(ip.GetAddressBytes(), 0);
 
-        /// <summary>Blocking; call from a background thread.</summary>
-        public static PingReplyInfo Send(IPAddress source, IPAddress destination, int timeoutMs)
+        const uint StatusTtlExpired = 11013;
+
+        /// <summary>Blocking; call from a background thread. A <paramref name="ttl"/> above 0 limits the hops (for traceroute).</summary>
+        public static PingReplyInfo Send(IPAddress source, IPAddress destination, int timeoutMs, int ttl = 0)
         {
-            if (NetworkService.DemoMode)
-            {
-                System.Threading.Thread.Sleep(40);
-                return new PingReplyInfo { Ok = true, RoundTripMs = 1 + Environment.TickCount % 3, From = destination.ToString() };
-            }
+            if (NetworkService.DemoMode) return DemoData.Ping(destination.ToString(), ttl);
+
             var handle = IcmpCreateFile();
             if (handle == new IntPtr(-1)) return new PingReplyInfo { Error = new Win32Exception().Message };
             var buffer = Marshal.AllocHGlobal(ReplyBufferSize);
+            // IP_OPTION_INFORMATION: Ttl, Tos, Flags, OptionsSize (bytes), then a pointer. Zeroed apart from the TTL.
+            var options = IntPtr.Zero;
+            if (ttl > 0)
+            {
+                options = Marshal.AllocHGlobal(IntPtr.Size * 2);
+                for (var i = 0; i < IntPtr.Size * 2; i++) Marshal.WriteByte(options, i, 0);
+                Marshal.WriteByte(options, 0, (byte)Math.Min(ttl, 255));
+            }
             try
             {
                 var payload = new byte[32];
                 var count = IcmpSendEcho2Ex(handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero,
                     ToNetworkOrder(source), ToNetworkOrder(destination), payload, (ushort)payload.Length,
-                    IntPtr.Zero, buffer, ReplyBufferSize, (uint)timeoutMs);
+                    options, buffer, ReplyBufferSize, (uint)timeoutMs);
 
                 // ICMP_ECHO_REPLY starts with Address, Status, RoundTripTime (all 32-bit).
                 var status = count == 0 ? (uint)Marshal.GetLastWin32Error() : (uint)Marshal.ReadInt32(buffer, 4);
+                var from = count > 0 ? new IPAddress((uint)Marshal.ReadInt32(buffer, 0)).ToString() : "";
                 if (count > 0 && status == 0)
-                {
-                    return new PingReplyInfo
-                    {
-                        Ok = true,
-                        RoundTripMs = (uint)Marshal.ReadInt32(buffer, 8),
-                        From = new IPAddress((uint)Marshal.ReadInt32(buffer, 0)).ToString(),
-                    };
-                }
+                    return new PingReplyInfo { Ok = true, RoundTripMs = (uint)Marshal.ReadInt32(buffer, 8), From = from };
+                if (status == StatusTtlExpired)
+                    return new PingReplyInfo { TtlExpired = true, From = from, RoundTripMs = count > 0 ? (uint)Marshal.ReadInt32(buffer, 8) : 0, Error = "TTL expired" };
                 return new PingReplyInfo { Error = Describe(status) };
             }
             finally
             {
                 Marshal.FreeHGlobal(buffer);
+                if (options != IntPtr.Zero) Marshal.FreeHGlobal(options);
                 IcmpCloseHandle(handle);
             }
         }

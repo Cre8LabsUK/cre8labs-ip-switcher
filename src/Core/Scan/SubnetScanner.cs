@@ -106,6 +106,7 @@ namespace Cre8Labs.NetTools.Core.Scan
         /// <summary>TCP connect checks from the adapter's own address, so they leave through the right adapter.</summary>
         public static async Task<List<int>> OpenPortsAsync(IPAddress source, IPAddress target, IEnumerable<int> ports, int timeoutMs, CancellationToken token)
         {
+            if (NetworkService.DemoMode) return DemoData.DemoPorts(target.ToString()).Where(ports.Contains).ToList();
             var checks = ports.Select(async port =>
             {
                 using (var client = new TcpClient(new IPEndPoint(source, 0)))

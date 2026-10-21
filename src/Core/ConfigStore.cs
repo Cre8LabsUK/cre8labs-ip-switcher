@@ -27,7 +27,8 @@ namespace Cre8Labs.NetTools.Core
     public sealed class ShortcutSettings
     {
         public const string DefaultDhcp = "D0", DefaultNewPreset = "Ctrl+N", DefaultRefresh = "F5",
-            DefaultNavAdapter = "Ctrl+D1", DefaultNavPool = "Ctrl+D2", DefaultNavScan = "Ctrl+D3";
+            DefaultNavAdapter = "Ctrl+D1", DefaultNavPool = "Ctrl+D2", DefaultNavScan = "Ctrl+D3",
+            DefaultNavMonitor = "Ctrl+D4", DefaultNavTools = "Ctrl+D5";
 
         public ShortcutSettings() => SetDefaults();
 
@@ -42,6 +43,8 @@ namespace Cre8Labs.NetTools.Core
         [DataMember(Order = 6)] public string NavAdapter { get; set; }
         [DataMember(Order = 7)] public string NavPool { get; set; }
         [DataMember(Order = 8)] public string NavScan { get; set; }
+        [DataMember(Order = 9)] public string NavMonitor { get; set; }
+        [DataMember(Order = 10)] public string NavTools { get; set; }
 
         // The JSON reader skips constructors, so set defaults for settings missing from older files.
         [OnDeserializing]
@@ -57,9 +60,19 @@ namespace Cre8Labs.NetTools.Core
             NavAdapter = DefaultNavAdapter;
             NavPool = DefaultNavPool;
             NavScan = DefaultNavScan;
+            NavMonitor = DefaultNavMonitor;
+            NavTools = DefaultNavTools;
         }
 
         public ShortcutSettings Clone() => (ShortcutSettings)MemberwiseClone();
+    }
+
+    /// <summary>A device on the Monitor page.</summary>
+    [DataContract]
+    public sealed class MonitorTarget
+    {
+        [DataMember(Order = 1)] public string Name { get; set; } = "";
+        [DataMember(Order = 2)] public string Ip { get; set; } = "";
     }
 
     [DataContract]
@@ -71,6 +84,9 @@ namespace Cre8Labs.NetTools.Core
 
         /// <summary>The last DHCP pool settings, including camera reservations.</summary>
         [DataMember(Order = 4)] public Dhcp.PoolSettings Pool { get; set; } = new Dhcp.PoolSettings();
+
+        /// <summary>Devices watched on the Monitor page.</summary>
+        [DataMember(Order = 5)] public List<MonitorTarget> MonitorTargets { get; set; } = new List<MonitorTarget>();
 
         /// <summary>
         /// Fills gaps from older or hand-edited files. Presets that never had a shortcut get
@@ -85,15 +101,19 @@ namespace Cre8Labs.NetTools.Core
             Pool = Pool ?? new Dhcp.PoolSettings();
             Pool.Reservations = Pool.Reservations ?? new List<Dhcp.Reservation>();
             Pool.Reservations.RemoveAll(r => r == null);
+            MonitorTargets = MonitorTargets ?? new List<MonitorTarget>();
+            MonitorTargets.RemoveAll(m => m == null || !IpTools.IsIPv4(m.Ip));
             Shortcuts.Dhcp = Shortcuts.Dhcp ?? ShortcutSettings.DefaultDhcp;
             Shortcuts.NewPreset = Shortcuts.NewPreset ?? ShortcutSettings.DefaultNewPreset;
             Shortcuts.Refresh = Shortcuts.Refresh ?? ShortcutSettings.DefaultRefresh;
             Shortcuts.NavAdapter = Shortcuts.NavAdapter ?? ShortcutSettings.DefaultNavAdapter;
             Shortcuts.NavPool = Shortcuts.NavPool ?? ShortcutSettings.DefaultNavPool;
             Shortcuts.NavScan = Shortcuts.NavScan ?? ShortcutSettings.DefaultNavScan;
+            Shortcuts.NavMonitor = Shortcuts.NavMonitor ?? ShortcutSettings.DefaultNavMonitor;
+            Shortcuts.NavTools = Shortcuts.NavTools ?? ShortcutSettings.DefaultNavTools;
 
             var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan };
+                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan, Shortcuts.NavMonitor, Shortcuts.NavTools };
             foreach (var p in Presets)
             {
                 p.Name = p.Name ?? ""; p.IP = p.IP ?? ""; p.Mask = p.Mask ?? "";
@@ -113,7 +133,7 @@ namespace Cre8Labs.NetTools.Core
         public string NextFreeDigit()
         {
             var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan };
+                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan, Shortcuts.NavMonitor, Shortcuts.NavTools };
             foreach (var p in Presets) used.Add(p.Hotkey ?? "");
             for (var d = 1; d <= 9; d++) if (!used.Contains("D" + d)) return "D" + d;
             return "";

@@ -181,7 +181,88 @@ namespace Cre8Labs.NetTools
         public bool HasMac => Mac.Length > 0;
     }
 
+    /// <summary>One device on the Monitor page, redrawn after every round of pings.</summary>
+    public sealed class MonitorItem : Observable
+    {
+        const double SparkWidth = 150, SparkHeight = 26;
+
+        public MonitorItem(string name, string ip)
+        {
+            Name = name;
+            Ip = ip;
+        }
+
+        public string Name { get; }
+        public string Ip { get; }
+        public Core.Monitor.TargetStats Stats { get; } = new Core.Monitor.TargetStats();
+
+        /// <summary>When the device last went down, for "back after 42 s" messages.</summary>
+        public DateTime? DownSince { get; set; }
+
+        public string Kind => Stats.State.ToString().ToLowerInvariant();
+        public string StateText => Stats.State == Core.Monitor.TargetState.Waiting ? "Waiting" : Stats.State.ToString();
+        public string LastText => Stats.LastMs != null ? $"{Stats.LastMs} ms" : Stats.Sent == 0 ? "" : "no reply";
+        public string AvgText => Stats.AverageMs != null ? $"avg {Stats.AverageMs:0} ms" : "";
+        public string LossText => Stats.Sent == 0 ? "" : $"{Stats.LossPercent:0}%";
+        public bool HasLoss => Stats.LossPercent > 0;
+
+        /// <summary>The latency line, scaled to the slowest reply in view (at least 20 ms).</summary>
+        public System.Windows.Media.PointCollection SparkPoints
+        {
+            get
+            {
+                var points = new System.Windows.Media.PointCollection();
+                var samples = Stats.Samples.ToList();
+                var max = Math.Max(20, samples.Where(s => s != null).Select(s => s.Value).DefaultIfEmpty(0).Max());
+                var step = SparkWidth / (Core.Monitor.TargetStats.Window - 1);
+                var x0 = SparkWidth - step * (samples.Count - 1);
+                for (var i = 0; i < samples.Count; i++)
+                {
+                    if (samples[i] == null) continue;
+                    points.Add(new System.Windows.Point(x0 + i * step, SparkHeight - 2 - (SparkHeight - 4) * samples[i].Value / max));
+                }
+                points.Freeze();
+                return points;
+            }
+        }
+
+        /// <summary>A short red tick for every missed reply.</summary>
+        public System.Windows.Media.Geometry LossMarks
+        {
+            get
+            {
+                var samples = Stats.Samples.ToList();
+                var step = SparkWidth / (Core.Monitor.TargetStats.Window - 1);
+                var x0 = SparkWidth - step * (samples.Count - 1);
+                var geometry = new System.Windows.Media.GeometryGroup();
+                for (var i = 0; i < samples.Count; i++)
+                    if (samples[i] == null)
+                        geometry.Children.Add(new System.Windows.Media.LineGeometry(
+                            new System.Windows.Point(x0 + i * step, SparkHeight - 8), new System.Windows.Point(x0 + i * step, SparkHeight)));
+                geometry.Freeze();
+                return geometry;
+            }
+        }
+
+        public void Refresh()
+        {
+            foreach (var name in new[] { nameof(Kind), nameof(StateText), nameof(LastText), nameof(AvgText), nameof(LossText),
+                                         nameof(HasLoss), nameof(SparkPoints), nameof(LossMarks) })
+                Raise(name);
+        }
+    }
+
+    /// <summary>A port result on the Tools page.</summary>
+    public sealed class PortChip
+    {
+        public int Port { get; set; }
+        public string Name { get; set; } = "";
+        public bool Open { get; set; }
+        public string Text => Name.Length > 0 ? $"{Port} {Name}" : Port.ToString();
+    }
+
     public sealed class LogEntry
+
 
     {
         public string Time { get; set; } = DateTime.Now.ToString("HH:mm:ss");

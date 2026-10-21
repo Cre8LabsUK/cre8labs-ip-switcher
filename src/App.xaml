@@ -265,6 +265,41 @@
           </Setter.Value>
         </Setter>
       </Style>
+      <Style x:Key="PasswordField" TargetType="PasswordBox">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        <Setter Property="Background" Value="{StaticResource Surface}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="CaretBrush" Value="{StaticResource Navy}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="PasswordBox">
+              <Grid>
+                <Border x:Name="ring" Margin="-3" CornerRadius="12" BorderBrush="#4014AFCB" BorderThickness="3" Opacity="0" />
+                <Border x:Name="bd" CornerRadius="9" Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                  <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Focusable="False"
+                                HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
+                </Border>
+              </Grid>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource LineStrong}" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                  <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Teal}" />
+                  <Setter TargetName="ring" Property="Opacity" Value="1" />
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
       <Style x:Key="MonoField" TargetType="TextBox" BasedOn="{StaticResource Field}">
         <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
       </Style>

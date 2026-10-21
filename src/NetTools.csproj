@@ -18,7 +18,7 @@
     <AssemblyTitle>Cre8Labs Net Tools</AssemblyTitle>
     <Description>One-click IP presets for Windows network adapters</Description>
     <Copyright>Copyright (c) 2026 Cre8Labs</Copyright>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
   </PropertyGroup>
 

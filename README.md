@@ -38,6 +38,8 @@
 | **Add as extra IP** | Keep your current address and add a second one, to reach a device on another subnet |
 | **Scan and discover** | Sweep a subnet for every device (IP, MAC, vendor, host name, open ports), and find ONVIF, UPnP and mDNS devices, even factory-default cameras on another subnet |
 | **Reach it** | One click adds an address in a found device's subnet to your adapter, then opens its web page |
+| **Monitor** | Watch every camera on a site at once: live latency graph, loss % and an alert the moment one drops |
+| **Tools** | Port check, RTSP stream check with camera login, traceroute, DNS lookup against any server, and link health counters |
 | **DHCP pool (preview)** | Hand out addresses to cameras and other kit on a bench, see every device that connects, and reserve a fixed IP per camera |
 | **Adapter-bound ping** | Pings always leave from the selected adapter, even when Wi-Fi or a VPN is on the same subnet |
 | **Smart validation** | Live subnet summary, plus warnings for a gateway outside the subnet or a network or broadcast address |

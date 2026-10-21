@@ -120,6 +120,30 @@ namespace Cre8Labs.NetTools.Core
             found.Report(new Scan.ScanResult { Ip = "192.168.1.40", Sources = Scan.FoundBy.Ssdp, DeviceName = "NVR-01", Manufacturer = "Synology", Model = "DVA3221" });
         }
 
+        static readonly Random Jitter = new Random();
+
+        /// <summary>
+        /// Demo ping: 1 to 4 ms replies, a two-hop route for traceroute, and the Axis camera (192.168.1.21)
+        /// dropping out for 12 seconds of every 40, so the Monitor page has something to alert on.
+        /// </summary>
+        public static PingReplyInfo Ping(string ip, int ttl)
+        {
+            Thread.Sleep(30);
+            var hops = new[] { "192.168.1.1", "10.20.0.1" };
+            var outside = !ip.StartsWith("192.168.1.");
+            if (ttl > 0 && outside && ttl <= hops.Length)
+                return new PingReplyInfo { TtlExpired = true, From = hops[ttl - 1], RoundTripMs = 2 * ttl, Error = "TTL expired" };
+            if (ip == "192.168.1.21" && DateTime.Now.Second % 40 >= 10 && DateTime.Now.Second % 40 < 22)
+                return new PingReplyInfo { Error = "timed out" };
+            int rtt;
+            lock (Jitter) rtt = 1 + Jitter.Next(4) + (outside ? 8 : 0);
+            return new PingReplyInfo { Ok = true, RoundTripMs = rtt, From = ip };
+        }
+
+        /// <summary>Open ports of the sample scan devices, for the demo port checker.</summary>
+        public static System.Collections.Generic.List<int> DemoPorts(string ip) =>
+            ScanDevices.FirstOrDefault(d => d.Ip == ip)?.OpenPorts.ToList() ?? new System.Collections.Generic.List<int>();
+
         static Scan.ScanResult Copy(Scan.ScanResult r) => new Scan.ScanResult
         {
             Ip = r.Ip, Mac = r.Mac, Vendor = r.Vendor, Hostname = r.Hostname, LatencyMs = r.LatencyMs,

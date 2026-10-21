@@ -8,6 +8,8 @@ using Cre8Labs.NetTools.Core;
 using Cre8Labs.NetTools.Core.Dhcp;
 using Cre8Labs.NetTools.Core.Oui;
 using Cre8Labs.NetTools.Core.Scan;
+using Cre8Labs.NetTools.Core.Monitor;
+using Cre8Labs.NetTools.Core.Tools;
 
 namespace Cre8Labs.NetTools.Tests
 {
@@ -47,6 +49,14 @@ namespace Cre8Labs.NetTools.Tests
             Run("scan results merge by IP", ScanMerge);
             Run("vendor list format", OuiFormat);
             Run("vendor list is built into the app", OuiEmbedded);
+            Run("monitor: one miss is not an outage", MonitorSingleMiss);
+            Run("monitor: down after 3 misses, then back up", MonitorDownAndBack);
+            Run("monitor: slow replies, loss and average", MonitorStats);
+            Run("RTSP digest login (RFC 2617 example)", RtspDigest);
+            Run("RTSP basic login and challenge parsing", RtspBasicAndOpaque);
+            Run("RTSP stream description", RtspStreams);
+            Run("DNS query and answer", DnsPackets);
+            Run("port lists", PortLists);
 
             Console.WriteLine();
             Console.WriteLine($"{_passed} passed, {_failed} failed");
@@ -454,6 +464,100 @@ namespace Cre8Labs.NetTools.Tests
             // 00408C is registered to Axis Communications in the IEEE file this list was built from.
             Check(OuiLookup.Vendor("00:40:8c:12:34:56").Contains("Axis"), "lookup: " + OuiLookup.Vendor("00:40:8c:12:34:56"));
             Check(OuiLookup.Vendor("00-40-8C-AA-BB-CC") == OuiLookup.Vendor("00408CAABBCC"), "MAC formats should match");
+        }
+
+        // ------------------------------------------------------------------ monitor and tools
+
+        static void MonitorSingleMiss()
+        {
+            var s = new TargetStats();
+            Check(s.Add(true, 2) == TargetState.Up, "first reply should mark Up");
+            Check(s.Add(false, 0) == null && s.State == TargetState.Up, "one miss changed the state");
+            Check(s.Add(true, 3) == null && s.ConsecutiveFailures == 0, "recovery after one miss");
+        }
+
+        static void MonitorDownAndBack()
+        {
+            var s = new TargetStats();
+            s.Add(true, 2);
+            s.Add(false, 0);
+            s.Add(false, 0);
+            Check(s.Add(false, 0) == TargetState.Down, "third miss in a row should mark Down");
+            Check(s.Add(false, 0) == null, "repeated Down should not alert again");
+            Check(s.Add(true, 4) == TargetState.Up, "reply should bring it back Up");
+
+            var never = new TargetStats();
+            never.Add(false, 0); never.Add(false, 0);
+            Check(never.State == TargetState.Waiting, "two misses on a new device should still be Waiting");
+            Check(never.Add(false, 0) == TargetState.Down, "a device that never answers goes Down");
+        }
+
+        static void MonitorStats()
+        {
+            var s = new TargetStats();
+            s.Add(true, 10);
+            s.Add(true, 30);
+            s.Add(false, 0);
+            s.Add(true, 20);
+            Check(Math.Abs(s.LossPercent - 25) < 0.01, "loss " + s.LossPercent);
+            Check(Math.Abs(s.AverageMs.Value - 20) < 0.01, "average " + s.AverageMs);
+            Check(s.Add(true, 150) == TargetState.Slow, "150 ms should be Slow");
+            for (var i = 0; i < 70; i++) s.Add(true, 5);
+            Check(s.Samples.Count == TargetStats.Window, "history should keep only the last 60");
+            Check(s.LossPercent == 0, "old losses should age out");
+        }
+
+        static void RtspDigest()
+        {
+            // The worked example from RFC 2617 section 3.5.
+            var header = RtspCheck.Authorization(
+                "Digest realm=\"testrealm@host.com\", qop=\"auth,auth-int\", nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"",
+                "Mufasa", "Circle Of Life", "GET", "/dir/index.html", "0a4f113b");
+            Check(header.Contains("response=\"6629fae49393a05397450978507c4ef1\""), "digest response: " + header);
+            Check(header.Contains("opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"") && header.Contains("nc=00000001"), "digest fields: " + header);
+        }
+
+        static void RtspBasicAndOpaque()
+        {
+            Check(RtspCheck.Authorization("Basic realm=\"cam\"", "admin", "pass", "DESCRIBE", "rtsp://x/") == "Basic YWRtaW46cGFzcw==", "basic header");
+            var noQop = RtspCheck.Authorization("Digest realm=\"IP Camera\", nonce=\"abc\"", "admin", "pass", "DESCRIBE", "rtsp://cam/1");
+            Check(noQop.StartsWith("Digest username=\"admin\", realm=\"IP Camera\", nonce=\"abc\"") && !noQop.Contains("qop"), "digest without qop: " + noQop);
+        }
+
+        static void RtspStreams()
+        {
+            var sdp = "v=0\r\no=- 1 1 IN IP4 0.0.0.0\r\ns=Media\r\nm=video 0 RTP/AVP 96\r\na=rtpmap:96 H265/90000\r\na=control:track1\r\n" +
+                      "m=audio 0 RTP/AVP 8\r\na=rtpmap:8 PCMA/8000\r\n";
+            var streams = RtspCheck.DescribeStreams(sdp);
+            Check(string.Join(", ", streams) == "H.265 video, G.711a audio", "streams: " + string.Join(", ", streams));
+            Check(RtspCheck.DescribeStreams("").Count == 0, "empty SDP");
+        }
+
+        static void DnsPackets()
+        {
+            var q = DnsQuery.BuildQuery(0x1234, "nvr.site.local");
+            Check(q[0] == 0x12 && q[1] == 0x34 && q[2] == 0x01, "header and recursion flag");
+            Check(q[12] == 3 && q[q.Length - 4] == 0 && q[q.Length - 3] == 1, "name labels and type A");
+
+            // Answer: the question echoed, then one A record pointing back at the name (compression).
+            var reply = new List<byte>(q);
+            reply[2] = 0x81; reply[3] = 0x80; reply[7] = 1;
+            reply.AddRange(new byte[] { 0xC0, 12, 0, 1, 0, 1, 0, 0, 0, 60, 0, 4, 192, 168, 1, 40 });
+            var answers = DnsQuery.ParseAnswers(reply.ToArray(), 0x1234);
+            Check(answers.Count == 1 && answers[0] == "192.168.1.40", "answers: " + string.Join(",", answers));
+
+            var nx = new List<byte>(q); nx[2] = 0x81; nx[3] = 0x83;
+            try { DnsQuery.ParseAnswers(nx.ToArray(), 0x1234); Check(false, "NXDOMAIN not reported"); }
+            catch (InvalidOperationException ex) { Check(ex.Message.Contains("does not exist"), "NXDOMAIN message: " + ex.Message); }
+        }
+
+        static void PortLists()
+        {
+            Check(string.Join(",", Diagnostics.ParsePorts("554, 80 443")) == "80,443,554", "list");
+            Check(Diagnostics.ParsePorts("8000-8003").Count == 4, "range");
+            Check(Diagnostics.ParsePorts("80, 99999") == null, "out of range accepted");
+            Check(Diagnostics.ParsePorts("1-5000") == null, "huge range accepted");
+            Check(Diagnostics.ParsePorts("") == null, "empty accepted");
         }
 
         // ------------------------------------------------------------------ sockets

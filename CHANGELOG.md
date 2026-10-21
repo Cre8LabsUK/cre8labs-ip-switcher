@@ -6,6 +6,15 @@ All notable changes to this project are listed here. The format follows [Keep a 
 
 ### Added
 
+- **Monitor page:** watch many devices at once from the selected adapter, pinged every second, with a 60-second latency graph, average, loss % and Up, Slow and Down states. A device is only marked Down after 3 missed pings in a row. Alerts when one drops and when it comes back, and flashes the taskbar when the window is in the background. Add devices by IP, from the last scan, or from the DHCP pool; the list is saved
+- **Tools page:**
+  - Port check with named ports (RTSP, Hikvision and Dahua SDK, web, SSH, RDP and more) and ranges such as 8000-8010
+  - RTSP stream check that confirms a camera is serving video and lists the codecs, with Basic or Digest camera login (the password is never saved)
+  - Traceroute from the selected adapter
+  - DNS lookup through Windows or a specific DNS server, such as the one a camera uses
+  - Link health: traffic, errors and discards on the adapter, with advice when errors appear
+- Ctrl+4 and Ctrl+5 open Monitor and Tools (reassignable)
+
 - **Navigation rail** with Adapter, DHCP pool and Scan pages. Ctrl+1, Ctrl+2 and Ctrl+3 switch pages, and can be reassigned
 - **Scan page:** sweep a subnet or range from the selected adapter and see each device's IP, MAC, vendor, host name, latency and open ports (web, RTSP, Hikvision and Dahua SDK, SSH, Telnet, RDP)
 - **Camera discovery** with ONVIF, UPnP and mDNS, which also finds factory-default cameras on other subnets
