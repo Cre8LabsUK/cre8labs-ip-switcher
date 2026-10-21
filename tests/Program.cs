@@ -46,6 +46,7 @@ namespace Cre8Labs.NetTools.Tests
             Run("mDNS query and reply", MdnsPackets);
             Run("scan results merge by IP", ScanMerge);
             Run("vendor list format", OuiFormat);
+            Run("vendor list is built into the app", OuiEmbedded);
 
             Console.WriteLine();
             Console.WriteLine($"{_passed} passed, {_failed} failed");
@@ -445,6 +446,14 @@ namespace Cre8Labs.NetTools.Tests
             Check(table["A1B2C3"] == "Example Vendor" && table["D4E5F6"] == "Padded Name", "values");
             Check(OuiLookup.Vendor("02:00:00:00:00:01") == "", "locally administered MAC should have no vendor");
             Check(OuiLookup.Vendor("short") == "", "short input");
+        }
+
+        static void OuiEmbedded()
+        {
+            Check(OuiLookup.Count > 30000, "embedded list has only " + OuiLookup.Count + " prefixes");
+            // 00408C is registered to Axis Communications in the IEEE file this list was built from.
+            Check(OuiLookup.Vendor("00:40:8c:12:34:56").Contains("Axis"), "lookup: " + OuiLookup.Vendor("00:40:8c:12:34:56"));
+            Check(OuiLookup.Vendor("00-40-8C-AA-BB-CC") == OuiLookup.Vendor("00408CAABBCC"), "MAC formats should match");
         }
 
         // ------------------------------------------------------------------ sockets

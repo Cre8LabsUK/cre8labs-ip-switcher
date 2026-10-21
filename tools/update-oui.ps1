@@ -4,7 +4,7 @@
 #   powershell -ExecutionPolicy Bypass -File tools\update-oui.ps1 -All      # every registered vendor (about 1 MB)
 #   powershell -ExecutionPolicy Bypass -File tools\update-oui.ps1 -All -Path "$HOME\Downloads\oui.csv"
 #
-# The IEEE site sometimes refuses scripted downloads. If so, open https://standards-oui.ieee.org/oui/oui.csv
+# If the download is refused on your network, open https://standards-oui.ieee.org/oui/oui.csv
 # in a browser, save it, and pass the saved file with -Path.
 #
 # The output is checked in, so normal builds never need the internet.
@@ -34,8 +34,9 @@ if ($Path) {
 } else {
     $tmp = Join-Path ([IO.Path]::GetTempPath()) 'ieee-oui.csv'
     Write-Host "Downloading $source"
-    try { Invoke-WebRequest -Uri $source -OutFile $tmp -UseBasicParsing }
-    catch { throw "Download refused. Open $source in a browser, save it, then run again with -Path <saved file>." }
+    # The IEEE site refuses PowerShell's web client but accepts curl, which ships with Windows 10 and 11.
+    & curl.exe -s -S -L --fail --max-time 180 -o $tmp $source
+    if ($LASTEXITCODE -ne 0) { throw "Download refused. Open $source in a browser, save it, then run again with -Path <saved file>." }
 }
 
 $rows = Import-Csv $tmp   # columns: Registry, Assignment, Organization Name, Organization Address
