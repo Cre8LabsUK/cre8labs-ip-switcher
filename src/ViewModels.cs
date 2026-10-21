@@ -157,11 +157,32 @@ namespace Cre8Labs.NetTools
         public string MovingNote { get; set; } = "";
         public bool HasMovingNote => MovingNote.Length > 0;
         public bool HasDetail => Detail.Length > 0;
+
+        /// <summary>MAC, then host name and vendor, on one muted line under the device name.</summary>
+        public string SubLine => Detail.Length > 0 ? Mac + "  \u00B7  " + Detail : Mac;
         public bool CanOpen => Kind == "active" && Ip.Length > 0;
         public string AssignLabel => IsReserved ? "Change reserved IP" : "Reserve an IP for this device";
     }
 
+    /// <summary>One row on the Scan page.</summary>
+    public sealed class ScanItem
+    {
+        public string Ip { get; set; }
+        public string Mac { get; set; } = "";
+        public string Title { get; set; }
+        public string Detail { get; set; } = "";
+        public string Badge { get; set; } = "";
+        public string PortsText { get; set; } = "";
+        public string IpNote { get; set; } = "";
+        public bool IsOtherSubnet { get; set; }
+        public bool CanOpenWeb { get; set; }
+        public string WebUrl { get; set; } = "";
+        public bool HasBadge => Badge.Length > 0;
+        public bool HasMac => Mac.Length > 0;
+    }
+
     public sealed class LogEntry
+
     {
         public string Time { get; set; } = DateTime.Now.ToString("HH:mm:ss");
         public string Text { get; set; }

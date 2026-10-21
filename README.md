@@ -36,6 +36,8 @@
 | **Live status** | Address, DHCP or static, link speed, gateway, DNS and MAC, updated as Windows reports changes |
 | **Set up before you plug in** | Apply a preset with the cable unplugged; the saved settings are shown until the link comes up |
 | **Add as extra IP** | Keep your current address and add a second one, to reach a device on another subnet |
+| **Scan and discover** | Sweep a subnet for every device (IP, MAC, vendor, host name, open ports), and find ONVIF, UPnP and mDNS devices, even factory-default cameras on another subnet |
+| **Reach it** | One click adds an address in a found device's subnet to your adapter, then opens its web page |
 | **DHCP pool (preview)** | Hand out addresses to cameras and other kit on a bench, see every device that connects, and reserve a fixed IP per camera |
 | **Adapter-bound ping** | Pings always leave from the selected adapter, even when Wi-Fi or a VPN is on the same subnet |
 | **Smart validation** | Live subnet summary, plus warnings for a gateway outside the subnet or a network or broadcast address |

@@ -26,7 +26,8 @@ namespace Cre8Labs.NetTools.Core
     [DataContract]
     public sealed class ShortcutSettings
     {
-        public const string DefaultDhcp = "D0", DefaultNewPreset = "Ctrl+N", DefaultRefresh = "F5";
+        public const string DefaultDhcp = "D0", DefaultNewPreset = "Ctrl+N", DefaultRefresh = "F5",
+            DefaultNavAdapter = "Ctrl+D1", DefaultNavPool = "Ctrl+D2", DefaultNavScan = "Ctrl+D3";
 
         public ShortcutSettings() => SetDefaults();
 
@@ -38,6 +39,9 @@ namespace Cre8Labs.NetTools.Core
         [DataMember(Order = 3)] public string Dhcp { get; set; }
         [DataMember(Order = 4)] public string NewPreset { get; set; }
         [DataMember(Order = 5)] public string Refresh { get; set; }
+        [DataMember(Order = 6)] public string NavAdapter { get; set; }
+        [DataMember(Order = 7)] public string NavPool { get; set; }
+        [DataMember(Order = 8)] public string NavScan { get; set; }
 
         // The JSON reader skips constructors, so set defaults for settings missing from older files.
         [OnDeserializing]
@@ -50,6 +54,9 @@ namespace Cre8Labs.NetTools.Core
             Dhcp = DefaultDhcp;
             NewPreset = DefaultNewPreset;
             Refresh = DefaultRefresh;
+            NavAdapter = DefaultNavAdapter;
+            NavPool = DefaultNavPool;
+            NavScan = DefaultNavScan;
         }
 
         public ShortcutSettings Clone() => (ShortcutSettings)MemberwiseClone();
@@ -81,8 +88,12 @@ namespace Cre8Labs.NetTools.Core
             Shortcuts.Dhcp = Shortcuts.Dhcp ?? ShortcutSettings.DefaultDhcp;
             Shortcuts.NewPreset = Shortcuts.NewPreset ?? ShortcutSettings.DefaultNewPreset;
             Shortcuts.Refresh = Shortcuts.Refresh ?? ShortcutSettings.DefaultRefresh;
+            Shortcuts.NavAdapter = Shortcuts.NavAdapter ?? ShortcutSettings.DefaultNavAdapter;
+            Shortcuts.NavPool = Shortcuts.NavPool ?? ShortcutSettings.DefaultNavPool;
+            Shortcuts.NavScan = Shortcuts.NavScan ?? ShortcutSettings.DefaultNavScan;
 
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh };
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan };
             foreach (var p in Presets)
             {
                 p.Name = p.Name ?? ""; p.IP = p.IP ?? ""; p.Mask = p.Mask ?? "";
@@ -101,7 +112,8 @@ namespace Cre8Labs.NetTools.Core
         /// <summary>The first of 1 to 9 that nothing uses yet, or empty.</summary>
         public string NextFreeDigit()
         {
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh };
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                { Shortcuts.Dhcp, Shortcuts.NewPreset, Shortcuts.Refresh, Shortcuts.NavAdapter, Shortcuts.NavPool, Shortcuts.NavScan };
             foreach (var p in Presets) used.Add(p.Hotkey ?? "");
             for (var d = 1; d <= 9; d++) if (!used.Contains("D" + d)) return "D" + d;
             return "";

@@ -18,13 +18,18 @@
     <AssemblyTitle>Cre8Labs Net Tools</AssemblyTitle>
     <Description>One-click IP presets for Windows network adapters</Description>
     <Copyright>Copyright (c) 2026 Cre8Labs</Copyright>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Assets\mark.png" />
     <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MAC prefix to vendor, rebuilt by tools\update-oui.ps1. Optional: lookups return nothing if it is missing. -->
+    <EmbeddedResource Include="Core\Oui\oui.csv" Condition="Exists('Core\Oui\oui.csv')" />
   </ItemGroup>
 
   <ItemGroup>

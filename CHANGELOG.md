@@ -2,7 +2,24 @@
 
 All notable changes to this project are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Navigation rail** with Adapter, DHCP pool and Scan pages. Ctrl+1, Ctrl+2 and Ctrl+3 switch pages, and can be reassigned
+- **Scan page:** sweep a subnet or range from the selected adapter and see each device's IP, MAC, vendor, host name, latency and open ports (web, RTSP, Hikvision and Dahua SDK, SSH, Telnet, RDP)
+- **Camera discovery** with ONVIF, UPnP and mDNS, which also finds factory-default cameras on other subnets
+- **Reach it:** one click adds an address in a device's subnet to the adapter, then opens its web page
+- **Vendor lookup** from the IEEE registry, shown in scan results and the DHCP Devices list
+- Reserve a scanned device straight into the DHCP pool, and ping or open it from the results
+- Ping results now show as a pop-up too
+
+### Changed
+
+- The DHCP Devices list moved from the bottom panel to its own page
+
 ## [1.1.0] - 2026-10-21
+
 
 ### Changed
 

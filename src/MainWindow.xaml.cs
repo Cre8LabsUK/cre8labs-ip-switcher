@@ -191,6 +191,8 @@ namespace Cre8Labs.NetTools
                 foreach (var a in list) Adapters.Add(a);
                 AdapterCombo.SelectedItem = Adapters.FirstOrDefault(a => a.Name == keep) ?? Adapters.FirstOrDefault();
                 _suppressSelection = false;
+                RaisePool();
+                UpdatePoolPreview();
             }
             await RefreshStatusAsync();
         }
@@ -537,7 +539,7 @@ namespace Cre8Labs.NetTools
                     });
                     if (i < 3) await Task.Delay(300);
                 }
-                AddLog(replies > 0 ? "ok" : "error", $"Ping {target} from {adapter} ({source}): {replies} of 4 replies");
+                Notify(replies > 0 ? "ok" : "error", $"Ping {target} from {adapter} ({source}): {replies} of 4 replies");
             }
             finally
             {
@@ -594,6 +596,9 @@ namespace Cre8Labs.NetTools
                 Bind(s.Dhcp, "Switch to DHCP", ApplyDhcpAsync);
                 Bind(s.NewPreset, "New preset", () => { NewPreset(); return Task.CompletedTask; }, needsWindow: true);
                 Bind(s.Refresh, "Refresh adapters", ReloadAdaptersAsync);
+                Bind(s.NavAdapter, "Adapter page", () => { Navigate("adapter"); return Task.CompletedTask; }, needsWindow: true);
+                Bind(s.NavPool, "DHCP pool page", () => { Navigate("pool"); return Task.CompletedTask; }, needsWindow: true);
+                Bind(s.NavScan, "Scan page", () => { Navigate("scan"); return Task.CompletedTask; }, needsWindow: true);
                 foreach (var item in Presets)
                 {
                     var target = item;
@@ -631,6 +636,9 @@ namespace Cre8Labs.NetTools
             if (Shortcut.Parse(s.Dhcp).Equals(shortcut)) return "Switch to DHCP";
             if (Shortcut.Parse(s.NewPreset).Equals(shortcut)) return "New preset";
             if (Shortcut.Parse(s.Refresh).Equals(shortcut)) return "Refresh adapters";
+            if (Shortcut.Parse(s.NavAdapter).Equals(shortcut)) return "Adapter page";
+            if (Shortcut.Parse(s.NavPool).Equals(shortcut)) return "DHCP pool page";
+            if (Shortcut.Parse(s.NavScan).Equals(shortcut)) return "Scan page";
             var preset = _config.Presets.FirstOrDefault(p => p != exclude && Shortcut.Parse(p.Hotkey).Equals(shortcut));
             return preset == null ? null : $"\u201C{preset.Name}\u201D";
         }

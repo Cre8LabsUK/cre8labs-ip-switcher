@@ -6,6 +6,8 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using Cre8Labs.NetTools.Core;
 using Cre8Labs.NetTools.Core.Dhcp;
+using Cre8Labs.NetTools.Core.Oui;
+using Cre8Labs.NetTools.Core.Scan;
 
 namespace Cre8Labs.NetTools.Tests
 {
@@ -36,6 +38,14 @@ namespace Cre8Labs.NetTools.Tests
             Run("network overlap check", Overlap);
             Run("MAC address formats", MacFormats);
             Run("server answers over a real socket", SocketSmokeTest);
+            Run("scan ranges", ScanRanges);
+            Run("scan range for an adapter is capped at /22", ScanRangeForAdapter);
+            Run("ONVIF probe match parsing", OnvifProbeMatch);
+            Run("ONVIF probe message", OnvifProbeMessage);
+            Run("SSDP reply parsing", SsdpReply);
+            Run("mDNS query and reply", MdnsPackets);
+            Run("scan results merge by IP", ScanMerge);
+            Run("vendor list format", OuiFormat);
 
             Console.WriteLine();
             Console.WriteLine($"{_passed} passed, {_failed} failed");
@@ -321,6 +331,120 @@ namespace Cre8Labs.NetTools.Tests
             Check(Reservation.NormalizeMac("AABB.CCDD.EEFF") == "AA-BB-CC-DD-EE-FF", "dotted format");
             Check(Reservation.NormalizeMac("aabbccddeeff") == "AA-BB-CC-DD-EE-FF", "bare format");
             Check(Reservation.NormalizeMac("aa:bb:cc") == null, "accepted a short MAC");
+        }
+
+        // ------------------------------------------------------------------ scanning and discovery
+
+        static void ScanRanges()
+        {
+            var subnet = ScanRange.Parse("192.168.1.0/24", out var e1);
+            Check(subnet != null && subnet.Count == 254, "/24 should be 254 hosts: " + e1);
+            Check(Text(subnet[0]) == "192.168.1.1" && Text(subnet[253]) == "192.168.1.254", "/24 should skip network and broadcast");
+            var anyHost = ScanRange.Parse("192.168.1.77/24", out _);
+            Check(anyHost.Count == 254 && Text(anyHost[0]) == "192.168.1.1", "host address in CIDR not reduced to its network");
+            var range = ScanRange.Parse("10.0.0.10-10.0.0.20", out _);
+            Check(range.Count == 11, "full range");
+            var shortRange = ScanRange.Parse("10.0.0.10-20", out _);
+            Check(shortRange.Count == 11 && Text(shortRange[10]) == "10.0.0.20", "short range");
+            Check(ScanRange.Parse("10.0.0.5", out _).Count == 1, "single address");
+            Check(ScanRange.Parse("10.0.0.0/16", out var e2) == null && e2.Contains("1,022"), "a /16 was not refused");
+            Check(ScanRange.Parse("10.0.0.0/22", out _).Count == 1022, "/22 should be allowed");
+            Check(ScanRange.Parse("10.0.0.20-10", out _) == null, "backwards range accepted");
+            Check(ScanRange.Parse("cameras", out _) == null, "nonsense accepted");
+        }
+
+        static void ScanRangeForAdapter()
+        {
+            Check(ScanRange.ForAdapter("192.168.1.250", "255.255.255.0") == "192.168.1.0/24", "/24 adapter");
+            Check(ScanRange.ForAdapter("10.20.30.40", "255.255.0.0") == "10.20.28.0/22", "/16 adapter not capped to its /22");
+            Check(ScanRange.ForAdapter("", "") == "", "no address");
+        }
+
+        // A ProbeMatches reply shaped like the ones IP cameras send (sample written for this test).
+        const string SampleProbeMatch =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><env:Envelope xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\" " +
+            "xmlns:wsa=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:d=\"http://schemas.xmlsoap.org/ws/2005/04/discovery\">" +
+            "<env:Header><wsa:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/ProbeMatches</wsa:Action></env:Header>" +
+            "<env:Body><d:ProbeMatches><d:ProbeMatch><wsa:EndpointReference><wsa:Address>urn:uuid:1234</wsa:Address></wsa:EndpointReference>" +
+            "<d:Types>dn:NetworkVideoTransmitter</d:Types>" +
+            "<d:Scopes>onvif://www.onvif.org/type/video_encoder onvif://www.onvif.org/name/Gate%20Camera " +
+            "onvif://www.onvif.org/hardware/DS-2CD2143G2-I onvif://www.onvif.org/location/city/ onvif://www.onvif.org/manufacturer/HIKVISION</d:Scopes>" +
+            "<d:XAddrs>http://192.168.0.64/onvif/device_service http://[fe80::1]/onvif/device_service</d:XAddrs>" +
+            "<d:MetadataVersion>1</d:MetadataVersion></d:ProbeMatch></d:ProbeMatches></env:Body></env:Envelope>";
+
+        static void OnvifProbeMatch()
+        {
+            var r = Discovery.ParseProbeMatch(SampleProbeMatch, "10.9.9.9");
+            Check(r != null, "did not parse");
+            Check(r.Ip == "192.168.0.64", "IP should come from XAddrs, got " + r.Ip);
+            Check(r.DeviceName == "Gate Camera", "name: " + r.DeviceName);
+            Check(r.Model == "DS-2CD2143G2-I", "model: " + r.Model);
+            Check(r.Manufacturer == "HIKVISION", "manufacturer: " + r.Manufacturer);
+            Check(r.Sources == FoundBy.Onvif, "source flag");
+            Check(Discovery.ParseProbeMatch("<not xml", "1.1.1.1") == null, "accepted broken XML");
+            Check(Discovery.ParseProbeMatch("<a><b/></a>", "1.1.1.1") == null, "accepted XML that is not a probe match");
+            var dtd = "<?xml version=\"1.0\"?><!DOCTYPE x [<!ENTITY e SYSTEM \"file:///c:/windows/win.ini\">]><x>&e;</x>";
+            Check(Discovery.ParseProbeMatch(dtd, "1.1.1.1") == null, "processed a DTD");
+        }
+
+        static void OnvifProbeMessage()
+        {
+            var xml = System.Text.Encoding.UTF8.GetString(Discovery.OnvifProbe("dn:NetworkVideoTransmitter"));
+            Check(xml.Contains("<d:Probe><d:Types>dn:NetworkVideoTransmitter</d:Types></d:Probe>"), "typed probe body");
+            Check(xml.Contains("discovery/Probe</w:Action>"), "probe action");
+            var doc = new System.Xml.XmlDocument();
+            doc.LoadXml(xml);
+            Check(System.Text.Encoding.UTF8.GetString(Discovery.OnvifProbe(null)).Contains("<d:Probe></d:Probe>"), "untyped probe body");
+        }
+
+        static void SsdpReply()
+        {
+            var headers = Discovery.ParseSsdp("HTTP/1.1 200 OK\r\nCACHE-CONTROL: max-age=1800\r\nLocation: http://192.168.1.40:5000/desc.xml\r\nSERVER: Linux UPnP/1.0\r\nST: upnp:rootdevice\r\n\r\n");
+            Check(headers != null && headers["LOCATION"] == "http://192.168.1.40:5000/desc.xml", "location header");
+            Check(headers["SERVER"] == "Linux UPnP/1.0", "server header");
+            Check(Discovery.ParseSsdp("NOTIFY * HTTP/1.1\r\nHOST: x\r\n\r\n") == null, "accepted a NOTIFY as a reply");
+        }
+
+        static void MdnsPackets()
+        {
+            var q = Discovery.MdnsQuery();
+            Check(q[5] == 1, "one question");
+            Check(q[q.Length - 4] == 0 && q[q.Length - 3] == 12 && q[q.Length - 2] == 0x80 && q[q.Length - 1] == 1, "PTR, IN, unicast bit");
+
+            // Reply: 1 answer, an A record for printer.local, with the name written once and pointed to.
+            var reply = new List<byte> { 0, 0, 0x84, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+            reply.AddRange(new byte[] { 7 }); reply.AddRange(System.Text.Encoding.ASCII.GetBytes("printer"));
+            reply.AddRange(new byte[] { 5 }); reply.AddRange(System.Text.Encoding.ASCII.GetBytes("local"));
+            reply.Add(0);
+            reply.AddRange(new byte[] { 0, 1, 0x80, 1, 0, 0, 0, 120, 0, 4, 192, 168, 1, 60 });
+            Check(Discovery.MdnsHostName(reply.ToArray()) == "printer.local", "A record name: " + Discovery.MdnsHostName(reply.ToArray()));
+
+            // Same record, but the name is a pointer back to an earlier copy (DNS compression).
+            var compressed = new List<byte> { 0, 0, 0x84, 0, 0, 1, 0, 1, 0, 0, 0, 0 };
+            compressed.AddRange(new byte[] { 3 }); compressed.AddRange(System.Text.Encoding.ASCII.GetBytes("nvr"));
+            compressed.AddRange(new byte[] { 5 }); compressed.AddRange(System.Text.Encoding.ASCII.GetBytes("local"));
+            compressed.AddRange(new byte[] { 0, 0, 1, 0, 1 });
+            compressed.AddRange(new byte[] { 0xC0, 12, 0, 1, 0x80, 1, 0, 0, 0, 120, 0, 4, 192, 168, 1, 40 });
+            Check(Discovery.MdnsHostName(compressed.ToArray()) == "nvr.local", "compressed name");
+            Check(Discovery.MdnsHostName(new byte[] { 1, 2, 3 }) == "", "short packet");
+        }
+
+        static void ScanMerge()
+        {
+            var arp = new ScanResult { Ip = "192.168.1.20", Mac = "AA-BB-CC-00-00-01", LatencyMs = 2, OpenPorts = new List<int> { 80, 554 }, Sources = FoundBy.Arp | FoundBy.Ping };
+            arp.Merge(new ScanResult { Ip = "192.168.1.20", DeviceName = "Gate", Model = "X1", OpenPorts = new List<int> { 443, 80 }, Sources = FoundBy.Onvif });
+            Check(arp.Mac == "AA-BB-CC-00-00-01" && arp.DeviceName == "Gate" && arp.Model == "X1", "fields not merged");
+            Check(string.Join(",", arp.OpenPorts) == "80,443,554", "ports: " + string.Join(",", arp.OpenPorts));
+            Check(arp.Sources == (FoundBy.Arp | FoundBy.Ping | FoundBy.Onvif), "sources not combined");
+        }
+
+        static void OuiFormat()
+        {
+            var table = OuiLookup.Parse(new System.IO.StringReader("A1B2C3,Example Vendor\nbad line\n0011ZZ,Not hex\nD4E5F6, Padded Name \n"));
+            Check(table.Count == 2, "should keep 2 valid lines, kept " + table.Count);
+            Check(table["A1B2C3"] == "Example Vendor" && table["D4E5F6"] == "Padded Name", "values");
+            Check(OuiLookup.Vendor("02:00:00:00:00:01") == "", "locally administered MAC should have no vendor");
+            Check(OuiLookup.Vendor("short") == "", "short input");
         }
 
         // ------------------------------------------------------------------ sockets

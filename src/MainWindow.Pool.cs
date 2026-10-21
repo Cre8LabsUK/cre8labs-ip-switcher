@@ -378,6 +378,8 @@ namespace Cre8Labs.NetTools
                     : lease.Hostname.Length > 0 ? lease.Hostname : "Unknown device";
                 var detail = new List<string>();
                 if (lease.Hostname.Length > 0 && lease.Hostname != name) detail.Add(lease.Hostname);
+                var vendor = Core.Oui.OuiLookup.Vendor(lease.Mac);
+                if (vendor.Length > 0) detail.Add(vendor);
                 if (lease.VendorClass.Length > 0) detail.Add(lease.VendorClass);
 
                 string kind, state, time = "";
@@ -423,7 +425,8 @@ namespace Cre8Labs.NetTools
             var reservedCount = reservations.Count;
             DevicesSummary = running
                 ? $"{_activeDevices} connected, {reservedCount} reserved"
-                : items.Count > 0 ? "The pool is stopped. Reservations are kept for next time." : "";
+                : items.Count > 0 ? "The pool is stopped. Reservations are kept for next time."
+                : "Start the pool on the left, then plug devices in. Use Add device to reserve an IP for a camera by its MAC.";
             Raise(nameof(NoDevices));
             Raise(nameof(DevicesSummary));
             Raise(nameof(DeviceCountText));
@@ -504,14 +507,6 @@ namespace Cre8Labs.NetTools
             if (config != null) _pool.SetReservations(config.Reservations);
         }
 
-        void ShowDevices_Click(object sender, RoutedEventArgs e) => DevicesToggle.IsChecked = true;
-
-        void DevicesToggle_Checked(object sender, RoutedEventArgs e)
-        {
-            LogToggle.IsChecked = false;
-            RefreshDevices();
-        }
-
-        void LogToggle_Checked(object sender, RoutedEventArgs e) => DevicesToggle.IsChecked = false;
+        void ShowDevices_Click(object sender, RoutedEventArgs e) => Navigate("pool");
     }
 }

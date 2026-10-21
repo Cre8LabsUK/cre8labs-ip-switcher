@@ -36,7 +36,7 @@ namespace Cre8Labs.NetTools
 
     public partial class ShortcutsWindow : Window
     {
-        readonly ShortcutRow _dhcp, _newPreset, _refresh;
+        readonly ShortcutRow _dhcp, _newPreset, _refresh, _navAdapter, _navPool, _navScan;
         readonly List<ShortcutRow> _presetRows = new List<ShortcutRow>();
 
         public ObservableCollection<ShortcutRow> Rows { get; } = new ObservableCollection<ShortcutRow>();
@@ -58,6 +58,9 @@ namespace Cre8Labs.NetTools
             Rows.Add(_dhcp = new ShortcutRow("Switch to DHCP", s.Dhcp, ShortcutSettings.DefaultDhcp));
             Rows.Add(_newPreset = new ShortcutRow("New preset", s.NewPreset, ShortcutSettings.DefaultNewPreset));
             Rows.Add(_refresh = new ShortcutRow("Refresh adapters", s.Refresh, ShortcutSettings.DefaultRefresh));
+            Rows.Add(_navAdapter = new ShortcutRow("Go to Adapter page", s.NavAdapter, ShortcutSettings.DefaultNavAdapter));
+            Rows.Add(_navPool = new ShortcutRow("Go to DHCP pool page", s.NavPool, ShortcutSettings.DefaultNavPool));
+            Rows.Add(_navScan = new ShortcutRow("Go to Scan page", s.NavScan, ShortcutSettings.DefaultNavScan));
             for (var i = 0; i < config.Presets.Count; i++)
             {
                 var row = new ShortcutRow($"Apply “{config.Presets[i].Name}”", config.Presets[i].Hotkey, i < 9 ? "D" + (i + 1) : "");
@@ -118,6 +121,9 @@ namespace Cre8Labs.NetTools
                 Dhcp = _dhcp.Gesture,
                 NewPreset = _newPreset.Gesture,
                 Refresh = _refresh.Gesture,
+                NavAdapter = _navAdapter.Gesture,
+                NavPool = _navPool.Gesture,
+                NavScan = _navScan.Gesture,
             };
             ResultPresetHotkeys = _presetRows.Select(r => r.Gesture).ToList();
             DialogResult = true;

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Cre8Labs.NetTools.Core
 {
@@ -83,6 +85,46 @@ namespace Cre8Labs.NetTools.Core
             }
             return OpResult.Success();
         }
+
+        // ------------------------------------------------------------------ scan and discovery
+
+        static readonly Scan.ScanResult[] ScanDevices =
+        {
+            new Scan.ScanResult { Ip = "192.168.1.1", Mac = "00-1A-2B-50-00-01", Vendor = "Ubiquiti Inc", Hostname = "core-switch.site.local", LatencyMs = 1, OpenPorts = { 22, 80, 443 }, Sources = Scan.FoundBy.Arp | Scan.FoundBy.Ping },
+            new Scan.ScanResult { Ip = "192.168.1.20", Mac = "00-1A-2B-10-00-01", Vendor = "Hangzhou Hikvision Digital Technology Co.,Ltd.", LatencyMs = 2, OpenPorts = { 80, 443, 554, 8000 }, Sources = Scan.FoundBy.Arp | Scan.FoundBy.Ping },
+            new Scan.ScanResult { Ip = "192.168.1.21", Mac = "00-1A-2B-10-00-02", Vendor = "Axis Communications AB", LatencyMs = 1, OpenPorts = { 80, 443, 554 }, Sources = Scan.FoundBy.Arp },
+            new Scan.ScanResult { Ip = "192.168.1.40", Mac = "00-1A-2B-20-00-01", Vendor = "Synology Incorporated", Hostname = "nvr-01", LatencyMs = 1, OpenPorts = { 80, 443, 22 }, Sources = Scan.FoundBy.Arp | Scan.FoundBy.Ping },
+        };
+
+        public static async Task ScanAsync(IReadOnlyList<uint> hosts, IProgress<Scan.ScanResult> found, IProgress<int> completed, CancellationToken token)
+        {
+            for (var i = 0; i < hosts.Count; i++)
+            {
+                if (token.IsCancellationRequested) return;
+                if (i % 16 == 0) await Task.Delay(220);
+                completed.Report(i + 1);
+                var match = ScanDevices.FirstOrDefault(d => IpTools.ToUInt(d.Ip) == hosts[i]);
+                if (match != null) found.Report(Copy(match));
+            }
+        }
+
+        public static async Task DiscoverAsync(IProgress<Scan.ScanResult> found, CancellationToken token)
+        {
+            await Task.Delay(900);
+            if (token.IsCancellationRequested) return;
+            found.Report(new Scan.ScanResult { Ip = "192.168.1.20", Sources = Scan.FoundBy.Onvif, DeviceName = "Gate camera", Manufacturer = "HIKVISION", Model = "DS-2CD2143G2-I" });
+            // A factory-default camera on another subnet: only ONVIF finds it.
+            found.Report(new Scan.ScanResult { Ip = "192.168.0.64", Sources = Scan.FoundBy.Onvif, DeviceName = "IP CAMERA", Manufacturer = "HIKVISION", Model = "DS-2CD2387G2-LU" });
+            await Task.Delay(600);
+            if (token.IsCancellationRequested) return;
+            found.Report(new Scan.ScanResult { Ip = "192.168.1.40", Sources = Scan.FoundBy.Ssdp, DeviceName = "NVR-01", Manufacturer = "Synology", Model = "DVA3221" });
+        }
+
+        static Scan.ScanResult Copy(Scan.ScanResult r) => new Scan.ScanResult
+        {
+            Ip = r.Ip, Mac = r.Mac, Vendor = r.Vendor, Hostname = r.Hostname, LatencyMs = r.LatencyMs,
+            OpenPorts = r.OpenPorts.ToList(), Sources = r.Sources,
+        };
 
         public static OpResult SetDhcp(string alias)
         {
