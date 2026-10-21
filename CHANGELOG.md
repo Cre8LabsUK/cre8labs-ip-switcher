@@ -14,6 +14,7 @@ All notable changes to this project are listed here. The format follows [Keep a 
   - DNS lookup through Windows or a specific DNS server, such as the one a camera uses
   - Link health: traffic, errors and discards on the adapter, with advice when errors appear
 - Ctrl+4 and Ctrl+5 open Monitor and Tools (reassignable)
+- **Use adapter** button on the Scan page fills in the selected adapter's network. The range also follows when you switch adapters, unless you typed your own
 
 - **Navigation rail** with Adapter, DHCP pool and Scan pages. Ctrl+1, Ctrl+2 and Ctrl+3 switch pages, and can be reassigned
 - **Scan page:** sweep a subnet or range from the selected adapter and see each device's IP, MAC, vendor, host name, latency and open ports (web, RTSP, Hikvision and Dahua SDK, SSH, Telnet, RDP)

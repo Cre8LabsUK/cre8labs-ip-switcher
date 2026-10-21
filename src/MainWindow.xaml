@@ -907,8 +907,15 @@
             <TextBox x:Name="ScanRangeBox" Style="{StaticResource MonoField}" Width="230" Tag="192.168.1.0/24" DockPanel.Dock="Left"
                      KeyDown="ScanRange_KeyDown" AutomationProperties.Name="Scan range"
                      ToolTip="A subnet (192.168.1.0/24), a range (192.168.1.10-50) or one address" />
+            <Button DockPanel.Dock="Left" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Padding="12,0" Click="ScanUseAdapter_Click"
+                    ToolTip="Fill in the selected adapter's network" AutomationProperties.Name="Use the selected adapter's network">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="{StaticResource IconFont}" Text="&#xE839;" FontSize="12" VerticalAlignment="Center" Margin="0,1,7,0" Foreground="{StaticResource Blue}" />
+                <TextBlock Text="Use adapter" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <CheckBox x:Name="DiscoverSwitch" Style="{StaticResource Switch}" IsChecked="True" Margin="18,0,12,0" VerticalAlignment="Center"
-                      Content="Also find cameras on other subnets" AutomationProperties.Name="Find cameras on other subnets"
+                      Content="Other subnets too" AutomationProperties.Name="Find cameras on other subnets"
                       ToolTip="Uses ONVIF, UPnP and mDNS discovery, which reach devices whatever their IP address" />
           </DockPanel>
           <StackPanel Grid.Row="2" Margin="0,14,0,12">

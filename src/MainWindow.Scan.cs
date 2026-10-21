@@ -55,7 +55,7 @@ namespace Cre8Labs.NetTools
             // Keep the pool setup in view: the adapter card shrinks to the essentials on the DHCP pool page.
             AdapterExtra.Visibility = page == "pool" ? Visibility.Collapsed : Visibility.Visible;
             if (page == "pool") RefreshDevices();
-            if (page == "scan" && ScanRangeBox.Text.Trim().Length == 0) ScanRangeBox.Text = ScanRange.ForAdapter(Status.FirstIp, Status.FirstMask);
+            if (page == "scan") SyncScanRange();
         }
 
         void Navigate(string page)
@@ -66,6 +66,32 @@ namespace Cre8Labs.NetTools
         }
 
         // ------------------------------------------------------------------ scanning
+
+        /// <summary>The range last filled in from an adapter, so switching adapters can update it without overwriting a typed range.</summary>
+        string _autoScanRange = "";
+
+        void ScanUseAdapter_Click(object sender, RoutedEventArgs e)
+        {
+            var range = ScanRange.ForAdapter(Status.FirstIp, Status.FirstMask);
+            if (range.Length == 0)
+            {
+                Notify("error", $"{SelectedAdapterName ?? "The adapter"} has no address yet. Connect it, or apply a preset first.");
+                return;
+            }
+            ScanRangeBox.Text = _autoScanRange = range;
+            ScanRangeBox.Focus();
+            ScanRangeBox.CaretIndex = range.Length;
+        }
+
+        /// <summary>Called when the adapter or its address changes.</summary>
+        void SyncScanRange()
+        {
+            if (ScanRangeBox == null) return;
+            var current = ScanRangeBox.Text.Trim();
+            if (current.Length != 0 && current != _autoScanRange) return; // the user typed their own range
+            var range = ScanRange.ForAdapter(Status.FirstIp, Status.FirstMask);
+            if (range.Length > 0) ScanRangeBox.Text = _autoScanRange = range;
+        }
 
         async void Scan_Click(object sender, RoutedEventArgs e)
         {
@@ -89,7 +115,7 @@ namespace Cre8Labs.NetTools
                 Notify("error", $"{alias} has no live address to scan from. Connect it, or apply a preset first.");
                 return;
             }
-            if (ScanRangeBox.Text.Trim().Length == 0) ScanRangeBox.Text = ScanRange.ForAdapter(Status.FirstIp, Status.FirstMask);
+            if (ScanRangeBox.Text.Trim().Length == 0) SyncScanRange();
             var hosts = ScanRange.Parse(ScanRangeBox.Text, out var error);
             if (hosts == null) { Notify("error", error); return; }
 

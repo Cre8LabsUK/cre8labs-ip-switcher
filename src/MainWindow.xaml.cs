@@ -213,6 +213,7 @@ namespace Cre8Labs.NetTools
                     {
                         Status = StatusView.From(status);
                         UpdateActiveTiles();
+                        SyncScanRange();
                     }
                 } while (_refreshAgain);
             }
