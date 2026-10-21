@@ -2,9 +2,13 @@
 #
 #   powershell -ExecutionPolicy Bypass -File tools\update-oui.ps1           # curated: security and network vendors
 #   powershell -ExecutionPolicy Bypass -File tools\update-oui.ps1 -All      # every registered vendor (about 1 MB)
+#   powershell -ExecutionPolicy Bypass -File tools\update-oui.ps1 -All -Path "$HOME\Downloads\oui.csv"
+#
+# The IEEE site sometimes refuses scripted downloads. If so, open https://standards-oui.ieee.org/oui/oui.csv
+# in a browser, save it, and pass the saved file with -Path.
 #
 # The output is checked in, so normal builds never need the internet.
-param([switch]$All)
+param([switch]$All, [string]$Path)
 
 $ErrorActionPreference = 'Stop'
 $source = 'https://standards-oui.ieee.org/oui/oui.csv'
@@ -25,9 +29,14 @@ $keep = @(
     'polycom', 'avaya', 'commend', 'aiphone', 'texecom', 'pyronix', 'ajax systems'
 )
 
-$tmp = Join-Path ([IO.Path]::GetTempPath()) 'ieee-oui.csv'
-Write-Host "Downloading $source"
-Invoke-WebRequest -Uri $source -OutFile $tmp -UseBasicParsing
+if ($Path) {
+    $tmp = (Resolve-Path $Path).Path
+} else {
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) 'ieee-oui.csv'
+    Write-Host "Downloading $source"
+    try { Invoke-WebRequest -Uri $source -OutFile $tmp -UseBasicParsing }
+    catch { throw "Download refused. Open $source in a browser, save it, then run again with -Path <saved file>." }
+}
 
 $rows = Import-Csv $tmp   # columns: Registry, Assignment, Organization Name, Organization Address
 $lines = foreach ($r in $rows) {
