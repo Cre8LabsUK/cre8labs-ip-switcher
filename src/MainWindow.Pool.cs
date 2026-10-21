@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Core.Dhcp;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Core.Dhcp;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     /// <summary>The DHCP pool: setup form, start and stop with safety checks, and the Devices panel.</summary>
     public partial class MainWindow

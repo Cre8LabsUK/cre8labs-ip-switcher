@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Cre8Labs.IPSwitcher.Core.Dhcp
+namespace Cre8Labs.NetTools.Core.Dhcp
 {
     public enum LeaseState { Offered, Active, Released, Expired }
 

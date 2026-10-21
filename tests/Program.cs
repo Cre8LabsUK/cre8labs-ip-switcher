@@ -4,10 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Core.Dhcp;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Core.Dhcp;
 
-namespace Cre8Labs.IPSwitcher.Tests
+namespace Cre8Labs.NetTools.Tests
 {
     static class Program
     {

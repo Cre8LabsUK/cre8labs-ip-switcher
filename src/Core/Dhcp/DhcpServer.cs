@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cre8Labs.IPSwitcher.Core.Dhcp
+namespace Cre8Labs.NetTools.Core.Dhcp
 {
     public enum PoolState { Stopped, WaitingForLink, Checking, Running }
 

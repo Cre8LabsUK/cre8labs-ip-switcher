@@ -7,15 +7,15 @@
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-    <AssemblyName>Cre8Labs-IPSwitcher</AssemblyName>
-    <RootNamespace>Cre8Labs.IPSwitcher</RootNamespace>
+    <AssemblyName>Cre8Labs-NetTools</AssemblyName>
+    <RootNamespace>Cre8Labs.NetTools</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <!-- Build with -p:NoElevate=true for a read-only preview build that does not ask for admin. -->
     <ApplicationManifest Condition="'$(NoElevate)' != 'true'">app.manifest</ApplicationManifest>
     <ApplicationManifest Condition="'$(NoElevate)' == 'true'">app.preview.manifest</ApplicationManifest>
     <Company>Cre8Labs</Company>
-    <Product>Cre8Labs IP Switcher</Product>
-    <AssemblyTitle>Cre8Labs IP Switcher</AssemblyTitle>
+    <Product>Cre8Labs Net Tools</Product>
+    <AssemblyTitle>Cre8Labs Net Tools</AssemblyTitle>
     <Description>One-click IP presets for Windows network adapters</Description>
     <Copyright>Copyright (c) 2026 Cre8Labs</Copyright>
     <Version>1.1.0</Version>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="IPSwitcher.Tests" />
+    <InternalsVisibleTo Include="NetTools.Tests" />
   </ItemGroup>
 
 </Project>

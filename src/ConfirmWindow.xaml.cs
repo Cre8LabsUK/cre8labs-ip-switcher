@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     /// <summary>A branded yes or no question. Cancel is the default, so Enter never confirms by accident.</summary>
     public partial class ConfirmWindow : Window

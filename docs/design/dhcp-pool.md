@@ -5,10 +5,10 @@
 
 ## Why
 
-Factory-reset or brand-new kit (IP cameras, NVRs, access panels, switches, IoT controllers) often starts on DHCP. On a bench, or with a laptop plugged straight into a device, there is no router to give it an address, so you cannot find or reach it. Today engineers carry a separate tool (Tftpd64, a travel router, or a spare switch with DHCP) for this. IP Switcher already sets static IPs on the laptop, so it can also own a small network end to end:
+Factory-reset or brand-new kit (IP cameras, NVRs, access panels, switches, IoT controllers) often starts on DHCP. On a bench, or with a laptop plugged straight into a device, there is no router to give it an address, so you cannot find or reach it. Today engineers carry a separate tool (Tftpd64, a travel router, or a spare switch with DHCP) for this. Net Tools already sets static IPs on the laptop, so it can also own a small network end to end:
 
 1. Choose the network the pool should serve, for example `192.168.1.0/24`, either typed in or taken from a preset.
-2. Click **Start pool**. IP Switcher gives the adapter its server address in that network (for example `192.168.1.1`) and starts handing out the rest of the range.
+2. Click **Start pool**. Net Tools gives the adapter its server address in that network (for example `192.168.1.1`) and starts handing out the rest of the range.
 3. Plug in the device. It appears in a lease table with its MAC, vendor, hostname and new IP.
 4. Click the IP to open its web page, ping it, or copy it.
 5. Click **Stop pool**. The adapter goes back to the preset or DHCP setting it had before.
@@ -92,7 +92,7 @@ The UI gets a `DhcpPoolViewModel` with an `ObservableCollection<LeaseItem>`, upd
 Inbound UDP 67 is blocked by default. The installer adds a program-scoped rule, removed on uninstall:
 
 ```
-netsh advfirewall firewall add rule name="Cre8Labs IP Switcher DHCP" dir=in action=allow protocol=UDP localport=67 program="{app}\Cre8Labs-IPSwitcher.exe"
+netsh advfirewall firewall add rule name="Cre8Labs Net Tools DHCP" dir=in action=allow protocol=UDP localport=67 program="{app}\Cre8Labs-NetTools.exe"
 ```
 
 The portable exe asks once and adds the same rule at runtime, since it already runs elevated.
@@ -150,7 +150,7 @@ Checked without sending any traffic: each address was bound and released, and th
 
 ### Bench test steps
 
-1. Install the latest Setup build and open IP Switcher. Accept the admin prompt.
+1. Install the latest Setup build and open Net Tools. Accept the admin prompt.
 2. Plug the laptop's Ethernet into a camera, or a switch with cameras. Cameras must have DHCP turned on; many ship with a fixed IP and DHCP off.
 3. Select the Ethernet adapter. Under DHCP pool, enter a network such as `192.168.1.0/24` and click **Start DHCP pool**.
 4. Within a minute, devices should appear under **Devices**. Click the globe icon to open a camera's web page.

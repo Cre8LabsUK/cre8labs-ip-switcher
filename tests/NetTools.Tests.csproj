@@ -5,13 +5,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <AssemblyName>IPSwitcher.Tests</AssemblyName>
-    <RootNamespace>Cre8Labs.IPSwitcher.Tests</RootNamespace>
+    <AssemblyName>NetTools.Tests</AssemblyName>
+    <RootNamespace>Cre8Labs.NetTools.Tests</RootNamespace>
     <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\IPSwitcher.csproj" />
+    <ProjectReference Include="..\src\NetTools.csproj" />
   </ItemGroup>
 
 </Project>

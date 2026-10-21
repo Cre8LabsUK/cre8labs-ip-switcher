@@ -1,6 +1,6 @@
 # Security policy
 
-IP Switcher runs with administrator rights, because Windows requires them to change IP settings. Security problems are therefore taken seriously.
+Net Tools runs with administrator rights, because Windows requires them to change IP settings. Security problems are therefore taken seriously.
 
 ## Reporting a vulnerability
 

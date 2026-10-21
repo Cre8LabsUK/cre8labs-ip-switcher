@@ -1,6 +1,6 @@
 # Code of conduct
 
-Cre8Labs IP Switcher is a small project, and we want it to be a friendly place to ask questions, report problems and contribute.
+Cre8Labs Net Tools is a small project, and we want it to be a friendly place to ask questions, report problems and contribute.
 
 ## Expected behaviour
 

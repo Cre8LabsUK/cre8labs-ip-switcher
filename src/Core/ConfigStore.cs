@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace Cre8Labs.IPSwitcher.Core
+namespace Cre8Labs.NetTools.Core
 {
     [DataContract]
     public sealed class Preset
@@ -110,7 +110,7 @@ namespace Cre8Labs.IPSwitcher.Core
 
     /// <summary>
     /// Loads and saves presets.json. A presets.json next to the exe wins (portable mode),
-    /// otherwise it lives in %APPDATA%\Cre8Labs\IP Switcher.
+    /// otherwise it lives in %APPDATA%\Cre8Labs\Net Tools (copied from the old "IP Switcher" folder on first run).
     /// </summary>
     public sealed class ConfigStore
     {
@@ -127,9 +127,20 @@ namespace Cre8Labs.IPSwitcher.Core
         public ConfigStore()
         {
             var portable = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "presets.json");
-            FilePath = File.Exists(portable)
-                ? portable
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cre8Labs", "IP Switcher", "presets.json");
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            FilePath = File.Exists(portable) ? portable : Path.Combine(appData, "Cre8Labs", "Net Tools", "presets.json");
+
+            // The app was called IP Switcher before 1.1. Carry presets over from the old folder once.
+            var legacy = Path.Combine(appData, "Cre8Labs", "IP Switcher", "presets.json");
+            if (FilePath != portable && !File.Exists(FilePath) && File.Exists(legacy))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+                    File.Copy(legacy, FilePath);
+                }
+                catch (IOException) { } // Load falls back to defaults; the old file is left untouched.
+            }
         }
 
         public AppConfig Load()

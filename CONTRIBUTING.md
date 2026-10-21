@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Cre8Labs IP Switcher.
+Thanks for helping improve Cre8Labs Net Tools.
 
 ## Reporting bugs
 
@@ -11,7 +11,7 @@ Open an issue with the **Bug report** template and include:
 - what you clicked and what happened
 - the relevant lines from the **Activity** panel (bottom right). They contain the exact message Windows returned.
 
-If the app crashed, attach `%TEMP%\Cre8Labs-IPSwitcher-crash.log`.
+If the app crashed, attach `%TEMP%\Cre8Labs-NetTools-crash.log`.
 
 Please remove anything you would rather keep private, such as MAC addresses or public IPs.
 
@@ -29,7 +29,7 @@ Please remove anything you would rather keep private, such as MAC addresses or p
    Add `--demo` to run it with sample adapters and presets. Nothing is changed or saved, which makes it safe for trying UI changes and for taking screenshots:
 
    ```powershell
-   preview-build\Cre8Labs-IPSwitcher.exe --demo
+   preview-build\Cre8Labs-NetTools.exe --demo
    ```
 3. Build everything (app, installer, checksums) with `build.ps1`.
 

@@ -3,11 +3,11 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     public partial class App : Application
     {
-        public static string CrashLogPath => Path.Combine(Path.GetTempPath(), "Cre8Labs-IPSwitcher-crash.log");
+        public static string CrashLogPath => Path.Combine(Path.GetTempPath(), "Cre8Labs-NetTools-crash.log");
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -21,7 +21,7 @@ namespace Cre8Labs.IPSwitcher
         {
             WriteCrash(e.Exception);
             MessageBox.Show("Something went wrong:\n\n" + e.Exception.Message + "\n\nDetails were saved to:\n" + CrashLogPath,
-                "Cre8Labs IP Switcher", MessageBoxButton.OK, MessageBoxImage.Error);
+                "Cre8Labs Net Tools", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }
 

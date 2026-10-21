@@ -17,10 +17,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Input;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Input;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
@@ -620,7 +620,7 @@ namespace Cre8Labs.IPSwitcher
             var taken = _bindings.Keys.Where(k => k.HasStrongModifier && !_globalHotkeys.Register(k)).Select(k => k.Display).ToList();
             if (taken.Count > 0)
                 Notify("error", $"Another app already uses {string.Join(", ", taken)}, so " +
-                    (taken.Count == 1 ? "it only works" : "they only work") + " while IP Switcher is focused.");
+                    (taken.Count == 1 ? "it only works" : "they only work") + " while Net Tools is focused.");
         }
 
         /// <summary>The action already using a shortcut, ignoring <paramref name="exclude"/>, or null.</summary>

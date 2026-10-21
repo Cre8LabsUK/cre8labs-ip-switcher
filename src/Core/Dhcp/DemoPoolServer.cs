@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cre8Labs.IPSwitcher.Core.Dhcp
+namespace Cre8Labs.NetTools.Core.Dhcp
 {
     /// <summary>
     /// "--demo" stand-in for <see cref="DhcpServer"/>: no sockets, but sample cameras go through the real

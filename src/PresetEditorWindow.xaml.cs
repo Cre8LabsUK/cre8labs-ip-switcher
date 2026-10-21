@@ -1,10 +1,10 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Input;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Input;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     public partial class PresetEditorWindow : Window
     {

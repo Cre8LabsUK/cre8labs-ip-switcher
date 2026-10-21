@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 
-namespace Cre8Labs.IPSwitcher.Input
+namespace Cre8Labs.NetTools.Input
 {
     /// <summary>System-wide hotkeys through RegisterHotKey, so shortcuts work while the app is in the background.</summary>
     public sealed class GlobalHotkeys

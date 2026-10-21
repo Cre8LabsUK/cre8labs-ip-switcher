@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="docs/social-preview.png" alt="Cre8Labs IP Switcher: change your Windows IP address in one click" width="100%">
+  <img src="docs/social-preview.png" alt="Cre8Labs Net Tools: IP presets, a DHCP pool and network tools for Windows" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/Cre8LabsUK/cre8labs-ip-switcher/releases/latest"><img src="https://img.shields.io/github/v/release/Cre8LabsUK/cre8labs-ip-switcher?label=release&color=14AFCB" alt="Latest release"></a>
-  <a href="https://github.com/Cre8LabsUK/cre8labs-ip-switcher/actions/workflows/build.yml"><img src="https://github.com/Cre8LabsUK/cre8labs-ip-switcher/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
-  <a href="https://github.com/Cre8LabsUK/cre8labs-ip-switcher/releases"><img src="https://img.shields.io/github/downloads/Cre8LabsUK/cre8labs-ip-switcher/total?color=7F23A6" alt="Downloads"></a>
+  <a href="https://github.com/Cre8LabsUK/cre8labs-net-tools/releases/latest"><img src="https://img.shields.io/github/v/release/Cre8LabsUK/cre8labs-net-tools?label=release&color=14AFCB" alt="Latest release"></a>
+  <a href="https://github.com/Cre8LabsUK/cre8labs-net-tools/actions/workflows/build.yml"><img src="https://github.com/Cre8LabsUK/cre8labs-net-tools/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
+  <a href="https://github.com/Cre8LabsUK/cre8labs-net-tools/releases"><img src="https://img.shields.io/github/downloads/Cre8LabsUK/cre8labs-net-tools/total?color=7F23A6" alt="Downloads"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-104F85?logo=windows" alt="Windows 10 and 11">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0E2744" alt="MIT license"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Cre8LabsUK/cre8labs-ip-switcher/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/Cre8LabsUK/cre8labs-net-tools/releases/latest"><b>Download</b></a> ·
   <a href="#features">Features</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#faq">FAQ</a> ·
@@ -20,7 +20,7 @@
 
 ---
 
-**Cre8Labs IP Switcher** saves the networks you work on as presets and switches your Windows network adapter between them with one click or one key press. It is built for engineers who plug into cameras, NVRs, access control panels, switches, PLCs and routers all day, and are tired of digging through five Control Panel dialogs to change a static IP.
+**Cre8Labs Net Tools** is a Windows toolkit for engineers who set up network kit. It saves the networks you work on as presets and switches your adapter between them with one click or one key press, hands out addresses to cameras and other devices with a built-in DHCP pool, and pings from the right adapter. It is built for engineers who plug into cameras, NVRs, access control panels, switches, PLCs and routers all day, and are tired of digging through five Control Panel dialogs to change a static IP.
 
 <p align="center">
   <img src="docs/screenshot.png" alt="Main window with presets, live adapter status and quick ping" width="860">
@@ -61,8 +61,8 @@
 
 ## Quick start
 
-1. Download **`Cre8Labs-IPSwitcher-Setup-x.y.z.exe`** from the [latest release](https://github.com/Cre8LabsUK/cre8labs-ip-switcher/releases/latest) and run it.
-2. Open **Cre8Labs IP Switcher** from the Start Menu and accept the administrator prompt. Windows only lets administrators change IP settings.
+1. Download **`Cre8Labs-NetTools-Setup-x.y.z.exe`** from the [latest release](https://github.com/Cre8LabsUK/cre8labs-net-tools/releases/latest) and run it.
+2. Open **Cre8Labs Net Tools** from the Start Menu and accept the administrator prompt. Windows only lets administrators change IP settings.
 3. Pick your network adapter on the left. Wired Ethernet is selected first by default.
 4. Click **New preset**, or press `Ctrl+N`, and save the networks you use.
 5. Click a tile, or press its number, to switch.
@@ -73,8 +73,8 @@ Right-click a tile, or use its `...` button, to edit, duplicate, reorder or dele
 
 | File | Use it when |
 |---|---|
-| `Cre8Labs-IPSwitcher-Setup-x.y.z.exe` | You want a normal install with a Start Menu shortcut and an uninstaller |
-| `Cre8Labs-IPSwitcher-x.y.z-portable.exe` | You want a single exe with no install, for example on a USB stick |
+| `Cre8Labs-NetTools-Setup-x.y.z.exe` | You want a normal install with a Start Menu shortcut and an uninstaller |
+| `Cre8Labs-NetTools-x.y.z-portable.exe` | You want a single exe with no install, for example on a USB stick |
 | `SHA256SUMS.txt` | You want to verify a download with `Get-FileHash <file>` |
 
 **Requirements:** Windows 10 (May 2019 update or later) or Windows 11, 64-bit or 32-bit. .NET Framework 4.8 is already part of these versions of Windows.
@@ -99,7 +99,7 @@ Windows only allows administrators to change IP settings. The app asks once when
 
 | Mode | Location |
 |---|---|
-| Installed | `%APPDATA%\Cre8Labs\IP Switcher\presets.json` |
+| Installed | `%APPDATA%\Cre8Labs\Net Tools\presets.json` |
 | Portable | `presets.json` in the same folder as the exe (used whenever that file exists) |
 
 The file is plain JSON, so you can back it up or hand it to your team:
@@ -150,7 +150,7 @@ For UI work there is a read-only build that skips the administrator prompt, and 
 
 ```powershell
 dotnet build src -c Release -p:NoElevate=true -o preview-build
-preview-build\Cre8Labs-IPSwitcher.exe --demo
+preview-build\Cre8Labs-NetTools.exe --demo
 ```
 
 | Path | What is in it |
@@ -162,7 +162,7 @@ preview-build\Cre8Labs-IPSwitcher.exe --demo
 
 ### Releasing
 
-Bump `<Version>` in `src/IPSwitcher.csproj`, add an entry to [`CHANGELOG.md`](CHANGELOG.md), then push a tag. GitHub Actions builds the installer and portable exe and publishes the release.
+Bump `<Version>` in `src/NetTools.csproj`, add an entry to [`CHANGELOG.md`](CHANGELOG.md), then push a tag. GitHub Actions builds the installer and portable exe and publishes the release.
 
 ```powershell
 git tag v1.1.0

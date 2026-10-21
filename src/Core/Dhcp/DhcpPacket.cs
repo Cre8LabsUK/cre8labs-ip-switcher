@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cre8Labs.IPSwitcher.Core.Dhcp
+namespace Cre8Labs.NetTools.Core.Dhcp
 {
     public enum DhcpMessageType : byte
     {

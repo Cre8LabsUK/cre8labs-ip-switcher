@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Cre8Labs.IPSwitcher.Core;
+using Cre8Labs.NetTools.Core;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     public abstract class Observable : INotifyPropertyChanged
     {

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Cre8Labs.IPSwitcher.Input
+namespace Cre8Labs.NetTools.Input
 {
     /// <summary>
     /// A text box that records a key combination instead of text.

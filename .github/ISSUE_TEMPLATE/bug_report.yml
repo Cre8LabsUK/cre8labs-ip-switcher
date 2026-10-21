@@ -33,5 +33,5 @@ body:
     id: crash
     attributes:
       label: Crash log
-      description: If the app crashed, paste the contents of %TEMP%\Cre8Labs-IPSwitcher-crash.log
+      description: If the app crashed, paste the contents of %TEMP%\Cre8Labs-NetTools-crash.log
       render: text

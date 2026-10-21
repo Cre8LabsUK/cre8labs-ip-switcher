@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Cre8Labs.IPSwitcher.Core
+namespace Cre8Labs.NetTools.Core
 {
     /// <summary>
     /// Made-up adapters and presets for "--demo" mode, used for screenshots and UI work.

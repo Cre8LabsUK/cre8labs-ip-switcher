@@ -1,11 +1,11 @@
-; Cre8Labs IP Switcher installer (Inno Setup 6)
-; Build with build.ps1, or: ISCC /DAppVersion=1.0.0 installer\IPSwitcher.iss
+; Cre8Labs Net Tools installer (Inno Setup 6)
+; Build with build.ps1, or: ISCC /DAppVersion=1.0.0 installer\NetTools.iss
 
 #ifndef AppVersion
   #define AppVersion "1.0.0"
 #endif
-#define AppName "Cre8Labs IP Switcher"
-#define AppExe "Cre8Labs-IPSwitcher.exe"
+#define AppName "Cre8Labs Net Tools"
+#define AppExe "Cre8Labs-NetTools.exe"
 
 [Setup]
 ; Never change AppId: it is how Windows matches upgrades and the uninstaller.
@@ -16,13 +16,13 @@ AppVerName={#AppName} {#AppVersion}
 AppPublisher=Cre8Labs
 AppPublisherURL=https://cre8labs.uk
 AppSupportURL=https://cre8labs.uk
-DefaultDirName={autopf}\Cre8Labs\IP Switcher
+DefaultDirName={autopf}\Cre8Labs\Net Tools
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir=..\dist
-OutputBaseFilename=Cre8Labs-IPSwitcher-Setup-{#AppVersion}
+OutputBaseFilename=Cre8Labs-NetTools-Setup-{#AppVersion}
 SetupIconFile=..\src\Assets\app.ico
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
@@ -48,6 +48,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "..\release-build\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
+[InstallDelete]
+; Files from before the rename to Net Tools
+Type: files; Name: "{app}\Cre8Labs-IPSwitcher.exe"
+Type: files; Name: "{autoprograms}\Cre8Labs IP Switcher.lnk"
+Type: files; Name: "{autodesktop}\Cre8Labs IP Switcher.lnk"
+
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
@@ -55,12 +61,13 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 [Run]
 ; Allow inbound DHCP (UDP 67 and 68) for this program only, so the DHCP pool can hear devices.
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs IP Switcher DHCP"""; Flags: runhidden
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Cre8Labs IP Switcher DHCP"" dir=in action=allow protocol=UDP localport=67,68 profile=any program=""{app}\{#AppExe}"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs Net Tools DHCP"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Cre8Labs Net Tools DHCP"" dir=in action=allow protocol=UDP localport=67,68 profile=any program=""{app}\{#AppExe}"""; Flags: runhidden
 ; Setup is already elevated, so launching as the current (admin) user avoids a second UAC prompt.
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallRun]
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs IP Switcher DHCP"""; Flags: runhidden; RunOnceId: "RemoveDhcpFirewallRule"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Cre8Labs Net Tools DHCP"""; Flags: runhidden; RunOnceId: "RemoveDhcpFirewallRule"
 
 [Code]
 // The app targets .NET Framework 4.8, built into Windows 10 1903+ and Windows 11.

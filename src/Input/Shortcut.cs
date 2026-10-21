@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 
-namespace Cre8Labs.IPSwitcher.Input
+namespace Cre8Labs.NetTools.Input
 {
     /// <summary>
     /// A key plus modifiers, stored as text such as "Ctrl+Shift+D1" and shown as "Ctrl+Shift+1".

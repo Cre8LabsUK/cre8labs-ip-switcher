@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Cre8Labs.IPSwitcher.Core
+namespace Cre8Labs.NetTools.Core
 {
     /// <summary>IPv4 parsing and subnet maths.</summary>
     public static class IpTools

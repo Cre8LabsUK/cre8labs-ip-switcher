@@ -3,10 +3,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Input;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Input;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     public sealed class ShortcutRow : Observable
     {

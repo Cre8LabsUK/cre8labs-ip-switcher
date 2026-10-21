@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Cre8Labs.IPSwitcher.Core;
-using Cre8Labs.IPSwitcher.Core.Dhcp;
+using Cre8Labs.NetTools.Core;
+using Cre8Labs.NetTools.Core.Dhcp;
 
-namespace Cre8Labs.IPSwitcher
+namespace Cre8Labs.NetTools
 {
     /// <summary>Adds, changes or removes one device's reserved address. Validation reuses the pool's own rules.</summary>
     public partial class ReservationWindow : Window

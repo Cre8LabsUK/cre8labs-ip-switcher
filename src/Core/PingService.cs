@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace Cre8Labs.IPSwitcher.Core
+namespace Cre8Labs.NetTools.Core
 {
     public sealed class PingReplyInfo
     {

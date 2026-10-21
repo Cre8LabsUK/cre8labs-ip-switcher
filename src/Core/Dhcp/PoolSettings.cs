@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace Cre8Labs.IPSwitcher.Core.Dhcp
+namespace Cre8Labs.NetTools.Core.Dhcp
 {
     /// <summary>A device that always gets the same address, for example a CCTV camera.</summary>
     [DataContract]

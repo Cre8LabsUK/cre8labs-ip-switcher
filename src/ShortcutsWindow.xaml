@@ -1,7 +1,7 @@
-<Window x:Class="Cre8Labs.IPSwitcher.ShortcutsWindow"
+<Window x:Class="Cre8Labs.NetTools.ShortcutsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:input="clr-namespace:Cre8Labs.IPSwitcher.Input"
+        xmlns:input="clr-namespace:Cre8Labs.NetTools.Input"
         Title="Keyboard shortcuts"
         Width="580" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
@@ -35,7 +35,7 @@
           <CheckBox x:Name="EnabledSwitch" Style="{StaticResource Switch}" FontWeight="SemiBold"
                     Content="Use keyboard shortcuts" AutomationProperties.Name="Use keyboard shortcuts" />
           <CheckBox x:Name="GlobalSwitch" Style="{StaticResource Switch}" Margin="0,12,0,0"
-                    Content="Also work when IP Switcher is in the background" AutomationProperties.Name="Also work in the background" />
+                    Content="Also work when Net Tools is in the background" AutomationProperties.Name="Also work in the background" />
           <TextBlock Margin="50,4,0,0" FontSize="12" Foreground="{StaticResource Muted}" TextWrapping="Wrap"
                      Text="Background shortcuts must include Ctrl, Alt or Win, so they never take over normal typing in other apps." />
         </StackPanel>

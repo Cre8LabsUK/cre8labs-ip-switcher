@@ -4,10 +4,14 @@ All notable changes to this project are listed here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+
+- **Renamed to Cre8Labs Net Tools** (was Cre8Labs IP Switcher), now that it does more than switch IPs. The exe is `Cre8Labs-NetTools.exe` and the repository is `cre8labs-net-tools`. Upgrading keeps your presets, and the installer removes the old shortcuts.
+
 ### Added
 
 - Keyboard shortcuts settings (keyboard button in the title bar): turn shortcuts on or off, reassign any key or combination per preset and for DHCP, New preset and Refresh, with conflict checks and Reset to defaults
-- Optional background mode: shortcuts with Ctrl, Alt or Win also work while IP Switcher is not focused
+- Optional background mode: shortcuts with Ctrl, Alt or Win also work while Net Tools is not focused
 - Shortcut field in the preset editor. Shortcuts now belong to the preset, so reordering tiles keeps them
 - Built-in DHCP pool (preview): serve a network you choose from a wired adapter, with a live Devices list, reservations so each camera always gets its planned address, Reserve all, and safety checks (wired adapters only, no overlap with other adapters, warning on live networks, stops if another DHCP server answers)
 - Automated tests for the DHCP pool, run on every build

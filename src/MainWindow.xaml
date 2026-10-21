@@ -1,7 +1,7 @@
-<Window x:Class="Cre8Labs.IPSwitcher.MainWindow"
+<Window x:Class="Cre8Labs.NetTools.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Cre8Labs IP Switcher"
+        Title="Cre8Labs Net Tools"
         Width="1100" Height="780" MinWidth="900" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Icon="Assets/app.ico"
@@ -216,7 +216,7 @@
             <Run Text="Cre8" FontWeight="Bold" /><Run Text="Labs" />
           </TextBlock>
           <Border Width="1" Height="20" Background="{StaticResource Line}" Margin="14,0" />
-          <TextBlock Text="IP Switcher" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
+          <TextBlock Text="Net Tools" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Muted}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
           <Button Style="{StaticResource CaptionButton}" Content="&#xE765;" FontSize="15" Height="56" Click="Shortcuts_Click"

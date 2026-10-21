@@ -25,7 +25,7 @@ jobs:
           if ($env:GITHUB_REF -like 'refs/tags/v*') {
             $v = $env:GITHUB_REF_NAME.TrimStart('v')
           } else {
-            $v = ([xml](Get-Content src/IPSwitcher.csproj)).Project.PropertyGroup |
+            $v = ([xml](Get-Content src/NetTools.csproj)).Project.PropertyGroup |
               ForEach-Object { $_.Version } | Where-Object { $_ } | Select-Object -First 1
           }
           "value=$v" >> $env:GITHUB_OUTPUT
@@ -41,7 +41,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet build tests -c Release -o test-build
-          ./test-build/IPSwitcher.Tests.exe
+          ./test-build/NetTools.Tests.exe
           if ($LASTEXITCODE -ne 0) { throw "Tests failed" }
 
       - name: Build app and installer
@@ -51,7 +51,7 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v7
         with:
-          name: ip-switcher-${{ steps.version.outputs.value }}
+          name: net-tools-${{ steps.version.outputs.value }}
           path: dist/*
 
       - name: Publish release
