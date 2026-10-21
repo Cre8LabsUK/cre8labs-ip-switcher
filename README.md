@@ -57,6 +57,12 @@
   </tr>
 </table>
 
+### Scan and find cameras, even on other subnets
+
+<p align="center">
+  <img src="docs/scan-demo.gif" alt="Scanning a network, finding a factory-default camera on another subnet, and reaching it with one click" width="820">
+</p>
+
 ### DHCP pool for cameras
 
 <p align="center">
