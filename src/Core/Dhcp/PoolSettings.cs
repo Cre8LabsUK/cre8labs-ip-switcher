@@ -198,6 +198,10 @@ namespace Cre8Labs.IPSwitcher.Core.Dhcp
         public string MaskText => IpTools.FromUInt(Mask);
         public string ServerText => IpTools.FromUInt(Server);
         public string RangeText => $"{IpTools.FromUInt(RangeStart)} to {IpTools.FromUInt(RangeEnd)}";
+
+        /// <summary>"192.168.1.100 to .199" when both ends share the first three octets, for narrow spaces.</summary>
+        public string ShortRangeText =>
+            (RangeStart >> 8) == (RangeEnd >> 8) ? $"{IpTools.FromUInt(RangeStart)} to .{RangeEnd & 255}" : RangeText;
         public string NetworkText => $"{IpTools.FromUInt(Network)}/{Prefix}";
         public int Size => (int)(RangeEnd - RangeStart + 1) - (Server >= RangeStart && Server <= RangeEnd ? 1 : 0);
 

@@ -53,6 +53,12 @@
   </tr>
 </table>
 
+### DHCP pool for cameras
+
+<p align="center">
+  <img src="docs/dhcp-pool-demo.gif" alt="Starting the DHCP pool, cameras getting addresses, and reserving a fixed IP for one camera" width="820">
+</p>
+
 ## Quick start
 
 1. Download **`Cre8Labs-IPSwitcher-Setup-x.y.z.exe`** from the [latest release](https://github.com/Cre8LabsUK/cre8labs-ip-switcher/releases/latest) and run it.

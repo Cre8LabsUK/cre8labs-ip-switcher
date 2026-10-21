@@ -55,7 +55,7 @@ namespace Cre8Labs.IPSwitcher
 
         public string PoolAdapterText => _poolAdapter ?? "";
         public string PoolServerText => _pool == null ? "" : $"{_pool.Config.ServerText}/{_pool.Config.Prefix}";
-        public string PoolRangeText => _pool?.Config.RangeText ?? "";
+        public string PoolRangeText => _pool?.Config.ShortRangeText ?? "";
         public string DeviceCountText => _activeDevices == 1 ? "1 connected" : $"{_activeDevices} connected";
         public string DevicesButtonText => _activeDevices > 0 ? $"Devices ({_activeDevices})" : "Devices";
 
